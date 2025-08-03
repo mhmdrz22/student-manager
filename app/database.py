@@ -21,3 +21,11 @@ def create_db_and_tables():
     # This function will be called on application startup
     # to create the database tables.
     Base.metadata.create_all(bind=engine)
+
+# Dependency to get a DB session
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()

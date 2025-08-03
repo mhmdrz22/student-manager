@@ -9,7 +9,7 @@ from pathlib import Path
 import os
 from sqlalchemy.orm import Session
 from . import models, schemas, security
-from .database import SessionLocal, engine, create_db_and_tables
+from .database import SessionLocal, engine, create_db_and_tables, get_db
 
 # This was moved to the startup event
 # models.Base.metadata.create_all(bind=engine)
@@ -20,13 +20,6 @@ app = FastAPI(
     version="0.1.0"
 )
 
-# Dependency to get a DB session
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 # This is needed to serve HTML templates
 templates = Jinja2Templates(directory="templates")
