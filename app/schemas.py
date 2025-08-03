@@ -20,3 +20,18 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     username: str | None = None
+
+class ArticleBase(BaseModel):
+    title: str
+    content: str
+
+class ArticleCreate(ArticleBase):
+    pass
+
+class Article(ArticleBase):
+    id: int
+    owner_id: int
+    published: bool
+
+    class Config:
+        from_attributes = True

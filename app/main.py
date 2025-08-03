@@ -98,10 +98,27 @@ async def login_for_access_token(
     response.set_cookie(key="access_token", value=f"Bearer {access_token}", httponly=True)
     return response
 
-@api_router.post("/articles")
-async def submit_article():
-    """Placeholder for article submission logic."""
-    return {"message": "Article submission endpoint"}
+@api_router.post("/articles", response_class=HTMLResponse)
+async def submit_article(
+    title: str = Form(...),
+    content: str = Form(...),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(security.get_current_active_user)
+):
+    """
+    Handles article submission from a logged-in user.
+    """
+    db_article = models.Article(
+        title=title,
+        content=content,
+        owner_id=current_user.id
+    )
+    db.add(db_article)
+    db.commit()
+    db.refresh(db_article)
+
+    # Redirecting to the dashboard, perhaps with a success message in the future
+    return RedirectResponse(url="/dashboard", status_code=302)
 
 @api_router.post("/news")
 async def submit_news():

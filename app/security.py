@@ -1,11 +1,13 @@
 from datetime import datetime, timedelta
 from typing import Optional
 
-from fastapi import HTTPException
+from fastapi import Depends, HTTPException, Request
 from jose import JWTError, jwt
 from passlib.context import CryptContext
+from sqlalchemy.orm import Session
 
 from .models import User
+from .database import get_db
 
 # Password Hashing Setup
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -43,9 +45,9 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
 # This function will be the dependency
 def get_current_user(token: str, db):
     credentials_exception = HTTPException(
-        status_code=401,
+        status_code=302,
         detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
+        headers={"Location": "/login"},
     )
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
@@ -58,3 +60,14 @@ def get_current_user(token: str, db):
     if user is None:
         raise credentials_exception
     return user
+
+async def get_current_active_user(request: Request, db: Session = Depends(get_db)):
+    token = request.cookies.get("access_token")
+    if not token:
+        raise HTTPException(status_code=302, detail="Not authenticated", headers={"Location": "/login"})
+
+    token_value = token.split(" ")[1] if token else None
+    if not token_value:
+        raise HTTPException(status_code=302, detail="Not authenticated", headers={"Location": "/login"})
+
+    return get_current_user(token=token_value, db=db)
