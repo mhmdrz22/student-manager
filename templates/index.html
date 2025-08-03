@@ -3,30 +3,169 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>صفحه اصلی - سامانه علمی</title>
+    <title>سامانه مدیریت مقالات و رویدادهای علمی</title>
     <style>
-        body { font-family: sans-serif; line-height: 1.6; margin: 20px; }
-        h1, h2 { color: #333; }
-        a { text-decoration: none; color: #007bff; }
-        nav a { margin-left: 15px; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            overflow: hidden;
+        }
+        header {
+            background: #333;
+            color: #fff;
+            padding: 1rem 0;
+            border-bottom: #0779e4 3px solid;
+        }
+        header a {
+            color: #fff;
+            text-decoration: none;
+            text-transform: uppercase;
+            font-size: 16px;
+        }
+        header ul {
+            padding: 0;
+            list-style: none;
+        }
+        header li {
+            float: left;
+            display: inline;
+            padding: 0 20px 0 20px;
+        }
+        header #branding {
+            float: right;
+        }
+        header #branding h1 {
+            margin: 0;
+        }
+        .hero {
+            background: #0779e4;
+            color: #fff;
+            padding: 60px 0;
+            text-align: center;
+        }
+        .hero h1 {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        .hero p {
+            font-size: 20px;
+        }
+        .hero .button {
+            display: inline-block;
+            background: #ff6f61;
+            color: #fff;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .content-section {
+            padding: 40px 0;
+            border-bottom: 1px solid #ddd;
+        }
+        .content-section h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+            color: #0779e4;
+        }
+        .card-container {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+        }
+        .card {
+            background: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin: 10px;
+            padding: 20px;
+            width: 30%;
+            min-width: 280px;
+            box-sizing: border-box;
+        }
+        .card h3 {
+            margin-top: 0;
+        }
+        footer {
+            background: #333;
+            color: #fff;
+            text-align: center;
+            padding: 20px;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
     <header>
-        <h1>سامانه مدیریت مقالات و رویدادهای علمی</h1>
-        <nav>
-            <a href="/">خانه</a>
-            <a href="/login">ورود</a>
-            <a href="/register">ثبت نام</a>
-            <a href="/dashboard">داشبرد</a>
-        </nav>
+        <div class="container">
+            <div id="branding">
+                <h1><a href="/">سامانه علمی</a></h1>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="/">خانه</a></li>
+                    <li><a href="/dashboard">ارسال مقاله</a></li>
+                    <li><a href="/login">ورود</a></li>
+                    <li><a href="/register">ثبت نام</a></li>
+                </ul>
+            </nav>
+        </div>
     </header>
-    <main>
-        <h2>آخرین اخبار و مقالات</h2>
-        <p>در حال حاضر محتوایی برای نمایش وجود ندارد.</p>
 
-        <h2>رویدادهای علمی</h2>
-        <p>در حال حاضر رویدادی ثبت نشده است.</p>
-    </main>
+    <section class="hero">
+        <div class="container">
+            <h1>به بزرگترین رویداد علمی سال خوش آمدید</h1>
+            <p>آخرین مقالات و دستاوردهای علمی را به اشتراک بگذارید و از آنها مطلع شوید</p>
+            <a href="/dashboard" class="button">مقاله خود را ارسال کنید</a>
+        </div>
+    </section>
+
+    <section class="content-section">
+        <div class="container">
+            <h2>آخرین اخبار</h2>
+            <div class="card-container">
+                <div class="card">
+                    <h3>آغاز به کار سامانه</h3>
+                    <p>سامانه مدیریت مقالات و رویدادهای علمی رسما آغاز به کار کرد. از این پس می‌توانید مقالات خود را از طریق این سامانه برای داوری ارسال کنید.</p>
+                </div>
+                <div class="card">
+                    <h3>فراخوان مقاله برای کنفرانس ملی</h3>
+                    <p>کنفرانس ملی علوم کامپیوتر از کلیه پژوهشگران دعوت به عمل می‌آورد تا مقالات خود را تا تاریخ معین ارسال نمایند.</p>
+                </div>
+                <div class="card">
+                    <h3>کارگاه آموزشی جدید</h3>
+                    <p>یک کارگاه آموزشی با موضوع "هوش مصنوعی و یادگیری عمیق" در تاریخ ۲۰ام ماه آینده برگزار خواهد شد. برای ثبت نام به بخش رویدادها مراجعه کنید.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="content-section">
+        <div class="container">
+            <h2>مقالات برگزیده</h2>
+            <div class="card-container">
+                <div class="card">
+                    <h3>بررسی الگوریتم‌های بهینه‌سازی</h3>
+                    <p>در این مقاله به بررسی و مقایسه عملکرد الگوریتم‌های بهینه‌سازی مختلف در حل مسائل پیچیده پرداخته شده است.</p>
+                </div>
+                <div class="card">
+                    <h3>امنیت در شبکه‌های کامپیوتری</h3>
+                    <p>این مقاله یک رویکرد جدید برای افزایش امنیت در شبکه‌های کامپیوتری با استفاده از رمزنگاری کوانتومی ارائه می‌دهد.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>تمامی حقوق این وب‌سایت محفوظ است &copy; 2024</p>
+    </footer>
 </body>
 </html>
