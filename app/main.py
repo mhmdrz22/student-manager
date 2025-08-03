@@ -3,6 +3,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import uvicorn
+from pathlib import Path
 
 from .database import create_db_and_tables
 
@@ -15,12 +16,15 @@ app = FastAPI(
     version="0.1.0"
 )
 
-# Mount the static files directory
-app.mount("/static", StaticFiles(directory="static"), name="static")
+# Define the base directory of the project
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Mount the static files directory using an absolute path
+app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 
 # This is needed to serve HTML templates
 # The directory should be relative to the project root.
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
 # API Router for versioning
 api_router = APIRouter(prefix="/api/v1")
