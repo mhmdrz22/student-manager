@@ -5,6 +5,7 @@ from fastapi.templating import Jinja2Templates
 import uvicorn
 from pathlib import Path
 
+import os
 from .database import create_db_and_tables
 
 # Create the database and tables on startup
@@ -24,9 +25,14 @@ templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
 @app.on_event("startup")
 async def startup_event():
-    # Mount the static files directory using an absolute path
-    # This is done in a startup event to avoid issues with the reloader.
-    app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
+    static_path = BASE_DIR / "static"
+    print(f"Checking for static directory at: {static_path}")
+
+    if os.path.isdir(static_path):
+        print("Static directory found. Mounting...")
+        app.mount("/static", StaticFiles(directory=static_path), name="static")
+    else:
+        print("Static directory NOT found.")
 
 # API Router for versioning
 api_router = APIRouter(prefix="/api/v1")
