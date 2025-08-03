@@ -1,4 +1,4 @@
-from fastapi import Depends, FastAPI, APIRouter, Request, HTTPException
+from fastapi import Depends, FastAPI, APIRouter, Request, HTTPException, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
@@ -44,30 +44,36 @@ api_router = APIRouter(prefix="/api/v1")
 
 # --- API Endpoints (Placeholders) ---
 
-@api_router.post("/register", response_model=schemas.User)
-def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+@api_router.post("/register", response_class=HTMLResponse)
+def register_user(
+    username: str = Form(...),
+    email: str = Form(...),
+    password: str = Form(...),
+    db: Session = Depends(get_db)
+):
     """
-    Handles user registration.
+    Handles user registration from a form.
     Hashes the password and saves the new user to the database.
     """
-    db_user = db.query(models.User).filter(models.User.username == user.username).first()
+    db_user = db.query(models.User).filter(models.User.username == username).first()
     if db_user:
         raise HTTPException(status_code=400, detail="Username already registered")
 
-    db_user_email = db.query(models.User).filter(models.User.email == user.email).first()
+    db_user_email = db.query(models.User).filter(models.User.email == email).first()
     if db_user_email:
         raise HTTPException(status_code=400, detail="Email already registered")
 
-    hashed_password = security.get_password_hash(user.password)
+    hashed_password = security.get_password_hash(password)
     db_user = models.User(
-        username=user.username,
-        email=user.email,
+        username=username,
+        email=email,
         hashed_password=hashed_password
     )
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
-    return db_user
+    # Redirect to login page after successful registration
+    return RedirectResponse(url="/login", status_code=302)
 
 @api_router.post("/login/token", response_model=schemas.Token)
 async def login_for_access_token(
