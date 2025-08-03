@@ -8,25 +8,21 @@ from pathlib import Path
 import os
 from .database import create_db_and_tables
 
-# Create the database and tables on startup
-create_db_and_tables()
-
 app = FastAPI(
     title="Scientific Association System",
     description="A system for managing articles, news, and scientific events.",
     version="0.1.0"
 )
 
-# Define the base directory of the project
-BASE_DIR = Path(__file__).resolve().parent.parent
-
 # This is needed to serve HTML templates
-templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
+templates = Jinja2Templates(directory="templates")
 
 @app.on_event("startup")
 async def startup_event():
-    # Mount the static files directory using an absolute path
-    app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
+    # Create DB and tables first
+    create_db_and_tables()
+    # Then mount static files
+    app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # API Router for versioning
 api_router = APIRouter(prefix="/api/v1")
