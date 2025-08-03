@@ -9,7 +9,7 @@ from pathlib import Path
 import os
 from sqlalchemy.orm import Session
 from . import models, schemas, security
-from .database import SessionLocal, engine
+from .database import SessionLocal, engine, create_db_and_tables
 
 # This was moved to the startup event
 # models.Base.metadata.create_all(bind=engine)
