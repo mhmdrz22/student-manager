@@ -1,5 +1,6 @@
 from fastapi import FastAPI, APIRouter, Request
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import uvicorn
 
@@ -14,9 +15,12 @@ app = FastAPI(
     version="0.1.0"
 )
 
+# Mount the static files directory
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 # This is needed to serve HTML templates
-# We point it to the 'templates' directory created earlier.
-templates = Jinja2Templates(directory="../templates")
+# The directory should be relative to the project root.
+templates = Jinja2Templates(directory="templates")
 
 # API Router for versioning
 api_router = APIRouter(prefix="/api/v1")
