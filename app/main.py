@@ -19,12 +19,14 @@ app = FastAPI(
 # Define the base directory of the project
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Mount the static files directory using an absolute path
-app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
-
 # This is needed to serve HTML templates
-# The directory should be relative to the project root.
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
+
+@app.on_event("startup")
+async def startup_event():
+    # Mount the static files directory using an absolute path
+    # This is done in a startup event to avoid issues with the reloader.
+    app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 
 # API Router for versioning
 api_router = APIRouter(prefix="/api/v1")
@@ -84,7 +86,5 @@ async def dashboard_page(request: Request):
     return templates.TemplateResponse("dashboard.html", {"request": request})
 
 
-# A main block to run the app for development
-if __name__ == "__main__":
-    # Note: The app should be run from the root directory, not from 'app/'
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True, app_dir="app")
+# The uvicorn command should be used to run the app, for example:
+# uvicorn app.main:app --reload
