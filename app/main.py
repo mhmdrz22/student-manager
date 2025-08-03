@@ -25,14 +25,8 @@ templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
 @app.on_event("startup")
 async def startup_event():
-    static_path = BASE_DIR / "static"
-    print(f"Checking for static directory at: {static_path}")
-
-    if os.path.isdir(static_path):
-        print("Static directory found. Mounting...")
-        app.mount("/static", StaticFiles(directory=static_path), name="static")
-    else:
-        print("Static directory NOT found.")
+    # Mount the static files directory using an absolute path
+    app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 
 # API Router for versioning
 api_router = APIRouter(prefix="/api/v1")
