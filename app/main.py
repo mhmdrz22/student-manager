@@ -3,6 +3,11 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 import uvicorn
 
+from .database import create_db_and_tables
+
+# Create the database and tables on startup
+create_db_and_tables()
+
 app = FastAPI(
     title="Scientific Association System",
     description="A system for managing articles, news, and scientific events.",
