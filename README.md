@@ -20,3 +20,44 @@
 - **Backend:** FastAPI
 - **Frontend:** HTML, CSS, JavaScript
 - **Database:** PostgreSQL
+
+## راه اندازی و نصب
+
+برای راه اندازی این پروژه، مراحل زیر را دنبال کنید:
+
+1.  **کلون کردن پروژه:**
+    ```bash
+    git clone <repository-url>
+    cd <project-directory>
+    ```
+
+2.  **ساختن و فعال کردن محیط مجازی:**
+    ```bash
+    python -m venv venv
+    # On Windows
+    # venv\Scripts\activate
+    # On macOS/Linux
+    source venv/bin/activate
+    ```
+
+3.  **نصب وابستگی‌ها:**
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+## اجرای برنامه
+
+پس از نصب وابستگی‌ها، می‌توانید برنامه را با دستور زیر از مسیر اصلی پروژه اجرا کنید:
+
+```bash
+uvicorn app.main:app --reload
+```
+
+برنامه بر روی آدرس `http://127.0.0.1:8000` در دسترس خواهد بود.
+
+### صفحات موجود
+
+-   **صفحه اصلی:** `http://127.0.0.1:8000/`
+-   **صفحه ثبت نام:** `http://127.0.0.1:8000/register`
+-   **صفحه ورود:** `http://127.0.0.1:8000/login`
+-   **داشبرد:** `http://127.0.0.1:8000/dashboard`
