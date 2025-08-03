@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ورود - سامانه علمی</title>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f4f4f4; }
+        form { background: #fff; padding: 20px; border-radius: 5px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        input { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; }
+        button { width: 100%; padding: 10px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <form action="/api/v1/login" method="post">
+        <h2>ورود به حساب کاربری</h2>
+        <label for="username">نام کاربری:</label>
+        <input type="text" id="username" name="username" required>
+
+        <label for="password">رمز عبور:</label>
+        <input type="password" id="password" name="password" required>
+
+        <button type="submit">ورود</button>
+        <p>حساب کاربری ندارید؟ <a href="/register">ثبت نام کنید</a></p>
+    </form>
+</body>
+</html>

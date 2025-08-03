@@ -1,0 +1,77 @@
+from fastapi import FastAPI, APIRouter, Request
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+import uvicorn
+
+app = FastAPI(
+    title="Scientific Association System",
+    description="A system for managing articles, news, and scientific events.",
+    version="0.1.0"
+)
+
+# This is needed to serve HTML templates
+# We point it to the 'templates' directory created earlier.
+templates = Jinja2Templates(directory="../templates")
+
+# API Router for versioning
+api_router = APIRouter(prefix="/api/v1")
+
+
+# --- API Endpoints (Placeholders) ---
+
+@api_router.post("/register")
+async def register_user():
+    """Placeholder for user registration logic."""
+    return {"message": "User registration endpoint"}
+
+@api_router.post("/login")
+async def login_user():
+    """Placeholder for user login logic."""
+    return {"message": "User login endpoint"}
+
+@api_router.post("/articles")
+async def submit_article():
+    """Placeholder for article submission logic."""
+    return {"message": "Article submission endpoint"}
+
+@api_router.post("/news")
+async def submit_news():
+    """Placeholder for news submission logic."""
+    return {"message": "News submission endpoint"}
+
+@api_router.post("/events")
+async def create_event():
+    """Placeholder for event creation logic (Admin only)."""
+    return {"message": "Event creation endpoint"}
+
+
+app.include_router(api_router)
+
+
+# --- Frontend Serving ---
+
+@app.get("/", response_class=HTMLResponse)
+async def read_root(request: Request):
+    """Serves the main page."""
+    return templates.TemplateResponse("index.html", {"request": request})
+
+@app.get("/register", response_class=HTMLResponse)
+async def register_page(request: Request):
+    """Serves the registration page."""
+    return templates.TemplateResponse("register.html", {"request": request})
+
+@app.get("/login", response_class=HTMLResponse)
+async def login_page(request: Request):
+    """Serves the login page."""
+    return templates.TemplateResponse("login.html", {"request": request})
+
+@app.get("/dashboard", response_class=HTMLResponse)
+async def dashboard_page(request: Request):
+    """Serves the user dashboard page."""
+    return templates.TemplateResponse("dashboard.html", {"request": request})
+
+
+# A main block to run the app for development
+if __name__ == "__main__":
+    # Note: The app should be run from the root directory, not from 'app/'
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True, app_dir="app")
