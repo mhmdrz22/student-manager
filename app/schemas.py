@@ -21,9 +21,13 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     username: str | None = None
 
+from datetime import datetime
+
 class ArticleBase(BaseModel):
     title: str
+    summary: str | None = None
     content: str
+    image_url: str | None = None
 
 class ArticleCreate(ArticleBase):
     pass
@@ -32,6 +36,28 @@ class Article(ArticleBase):
     id: int
     owner_id: int
     published: bool
+    created_at: datetime
+    owner: "User" # Forward reference to the User schema
+
+    class Config:
+        from_attributes = True
+
+
+class NewsBase(BaseModel):
+    title: str
+    summary: str | None = None
+    content: str
+    image_url: str | None = None
+
+class NewsCreate(NewsBase):
+    pass
+
+class News(NewsBase):
+    id: int
+    owner_id: int
+    published: bool
+    created_at: datetime
+    owner: "User"
 
     class Config:
         from_attributes = True

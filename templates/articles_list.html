@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>آخرین اخبار - سامانه علمی</title>
+    <title>مقالات برگزیده - سامانه علمی</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -37,7 +37,7 @@
             padding: 40px 0;
             color: #0779e4;
         }
-        .news-grid {
+        .articles-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 20px;
@@ -62,6 +62,11 @@
         }
         .card-content h3 {
             margin-top: 0;
+        }
+        .card-content .author {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 10px;
         }
         .card-content p {
             flex-grow: 1;
@@ -102,19 +107,20 @@
     </header>
 
     <div class="container">
-        <h1 class="page-title">آخرین اخبار</h1>
-        <div class="news-grid">
-            {% for news in news_list %}
+        <h1 class="page-title">مقالات برگزیده</h1>
+        <div class="articles-grid">
+            {% for article in articles_list %}
             <div class="card">
-                <img src="{{ news.image_url or 'https://via.placeholder.com/400x200.png?text=News' }}" alt="{{ news.title }}">
+                <img src="{{ article.image_url or 'https://via.placeholder.com/400x200.png?text=Article' }}" alt="{{ article.title }}">
                 <div class="card-content">
-                    <h3>{{ news.title }}</h3>
-                    <p>{{ news.summary or news.content[:120] }}...</p>
-                    <a href="/news/{{ news.id }}">ادامه مطلب</a>
+                    <h3>{{ article.title }}</h3>
+                    <p class="author">نویسنده: {{ article.owner.username }}</p>
+                    <p>{{ article.summary or article.content[:120] }}...</p>
+                    <a href="/articles/{{ article.id }}">ادامه مطلب</a>
                 </div>
             </div>
             {% else %}
-            <p>در حال حاضر خبری برای نمایش وجود ندارد.</p>
+            <p>در حال حاضر مقاله‌ای برای نمایش وجود ندارد.</p>
             {% endfor %}
         </div>
     </div>

@@ -21,8 +21,11 @@ class Article(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, index=True)
+    summary = Column(Text, nullable=True)
     content = Column(Text)
+    image_url = Column(String, nullable=True)
     published = Column(Boolean, default=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
     owner_id = Column(Integer, ForeignKey("users.id"))
 
     owner = relationship("User", back_populates="articles")
@@ -33,6 +36,7 @@ class News(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, index=True)
+    summary = Column(Text, nullable=True)
     content = Column(Text)
     image_url = Column(String, nullable=True)
     published = Column(Boolean, default=False)

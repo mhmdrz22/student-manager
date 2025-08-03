@@ -113,6 +113,7 @@
                 <ul>
                     <li><a href="/">خانه</a></li>
                     <li><a href="/news">اخبار</a></li>
+                    <li><a href="/articles">مقالات</a></li>
                     <li><a href="/dashboard">ارسال مقاله</a></li>
                     <li><a href="/login">ورود</a></li>
                     <li><a href="/register">ثبت نام</a></li>
@@ -137,7 +138,7 @@
                 <div class="card">
                     <img src="{{ news.image_url or 'https://via.placeholder.com/400x200.png?text=News+Image' }}" alt="{{ news.title }}" style="width:100%; border-radius: 5px;">
                     <h3>{{ news.title }}</h3>
-                    <p>{{ news.content[:100] }}...</p> {# Show first 100 characters #}
+                    <p>{{ news.summary or news.content[:100] }}...</p>
                     <a href="/news/{{ news.id }}" class="button" style="background:#0779e4; display:block; text-align:center;">ادامه مطلب</a>
                 </div>
                 {% else %}
@@ -151,14 +152,7 @@
         <div class="container">
             <h2>مقالات برگزیده</h2>
             <div class="card-container">
-                <div class="card">
-                    <h3>بررسی الگوریتم‌های بهینه‌سازی</h3>
-                    <p>در این مقاله به بررسی و مقایسه عملکرد الگوریتم‌های بهینه‌سازی مختلف در حل مسائل پیچیده پرداخته شده است.</p>
-                </div>
-                <div class="card">
-                    <h3>امنیت در شبکه‌های کامپیوتری</h3>
-                    <p>این مقاله یک رویکرد جدید برای افزایش امنیت در شبکه‌های کامپیوتری با استفاده از رمزنگاری کوانتومی ارائه می‌دهد.</p>
-                </div>
+                <p>برای مشاهده لیست کامل مقالات به <a href="/articles">صفحه مقالات</a> مراجعه کنید.</p>
             </div>
         </div>
     </section>
