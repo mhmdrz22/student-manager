@@ -1,109 +1,21 @@
-<!DOCTYPE html>
-<html lang="fa" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ article.title }} - سامانه علمی</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f7f6;
-            color: #333;
-        }
-        .container {
-            width: 70%;
-            margin: auto;
-            overflow: hidden;
-            padding: 20px;
-        }
-        header {
-            background: #333;
-            color: #fff;
-            padding: 1rem 0;
-            border-bottom: #0779e4 3px solid;
-        }
-        header a {
-            color: #fff;
-            text-decoration: none;
-            text-transform: uppercase;
-        }
-        header ul { padding: 0; list-style: none; float: left; }
-        header li { display: inline; padding: 0 20px; }
-        header #branding { float: right; }
-        header #branding h1 { margin: 0; }
-        .article-content {
-            background: #fff;
-            padding: 30px;
-            margin-top: 30px;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        .article-content h1 {
-            color: #0779e4;
-            margin-top: 0;
-        }
-        .article-meta {
-            margin-bottom: 20px;
-            color: #666;
-            font-size: 14px;
-        }
-        .article-meta span {
-            margin-left: 15px;
-        }
-        .article-content img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 5px;
-            margin-bottom: 20px;
-        }
-        .article-content p {
-            line-height: 1.8;
-            text-align: justify;
-        }
-        footer {
-            background: #333;
-            color: #fff;
-            text-align: center;
-            padding: 20px;
-            margin-top: 30px;
-        }
-    </style>
-</head>
-<body>
-    <header>
-        <div class="container">
-            <div id="branding">
-                <h1><a href="/">سامانه علمی</a></h1>
-            </div>
-            <nav>
-                <ul>
-                    <li><a href="/">خانه</a></li>
-                    <li><a href="/news">اخبار</a></li>
-                    <li><a href="/articles">مقالات</a></li>
-                    <li><a href="/dashboard">ارسال مقاله</a></li>
-                </ul>
-            </nav>
-        </div>
-    </header>
+{% extends "base.html" %}
 
-    <div class="container">
-        <article class="article-content">
-            <h1>{{ article.title }}</h1>
-            <div class="article-meta">
-                <span><strong>نویسنده:</strong> {{ article.owner.username }}</span>
-                <span><strong>تاریخ انتشار:</strong> {{ article.created_at.strftime('%Y-%m-%d') }}</span>
-            </div>
+{% block title %}{{ article.title }} - سامانه علمی{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <article class="blog-post">
+            <h2 class="blog-post-title mb-1">{{ article.title }}</h2>
+            <p class="blog-post-meta">{{ article.created_at.strftime('%Y-%m-%d') }} by <a href="#">{{ article.owner.username }}</a></p>
+
             {% if article.image_url %}
-            <img src="{{ article.image_url }}" alt="{{ article.title }}">
+            <img src="{{ article.image_url }}" class="img-fluid rounded my-3" alt="{{ article.title }}">
             {% endif %}
+
             <p>{{ article.content }}</p>
         </article>
+        <a href="/articles" class="btn btn-secondary mt-3">بازگشت به لیست مقالات</a>
     </div>
-
-    <footer>
-        <p>تمامی حقوق این وب‌سایت محفوظ است &copy; 2024</p>
-    </footer>
-</body>
-</html>
+</div>
+{% endblock %}

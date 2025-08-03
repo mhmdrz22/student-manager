@@ -1,55 +1,70 @@
-<!DOCTYPE html>
-<html lang="fa" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>داشبرد - سامانه علمی</title>
-    <style>
-        body { font-family: sans-serif; line-height: 1.6; margin: 20px; }
-        h1, h2 { color: #333; }
-        a { text-decoration: none; color: #007bff; }
-        nav a { margin-left: 15px; }
-        .content-section { margin-top: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
-    </style>
-</head>
-<body>
-    <header>
-        <h1>داشبرد کاربری</h1>
-        <nav>
-            <a href="/">خانه</a>
-            <a href="/news">اخبار</a>
-            <a href="/articles">مقالات</a>
-            <a href="#">خروج</a>
-        </nav>
-    </header>
-    <main>
-        <h2>ارسال محتوای جدید</h2>
-        <div class="content-section">
-            <h3>ارسال مقاله</h3>
-            <form action="/api/v1/articles" method="post">
-                <label for="article_title">عنوان مقاله:</label><br>
-                <input type="text" id="article_title" name="title" style="width: 80%;"><br><br>
-                <label for="article_content">محتوای مقاله:</label><br>
-                <textarea id="article_content" name="content" rows="8" style="width: 80%;"></textarea><br><br>
-                <button type="submit">ارسال مقاله</button>
-            </form>
-        </div>
+{% extends "base.html" %}
 
-        <div class="content-section">
-            <h3>ارسال خبر</h3>
-            <form action="/api/v1/news" method="post">
-                <label for="news_title">عنوان خبر:</label><br>
-                <input type="text" id="news_title" name="title" style="width: 80%;"><br><br>
-                <label for="news_content">محتوای خبر:</label><br>
-                <textarea id="news_content" name="content" rows="5" style="width: 80%;"></textarea><br><br>
-                <button type="submit">ارسال خبر</button>
-            </form>
-        </div>
+{% block title %}داشبورد کاربری - سامانه علمی{% endblock %}
 
-        <div class="content-section">
-            <h2>محتواهای ارسال شده شما</h2>
-            <p>در حال حاضر محتوایی ارسال نکرده‌اید.</p>
+{% block content %}
+<h1 class="mb-4">داشبورد کاربری</h1>
+
+<div class="row">
+    <div class="col-md-8">
+        <!-- New Content Submission -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2 class="h5 mb-0">ارسال محتوای جدید</h2>
+            </div>
+            <div class="card-body">
+                <!-- Nav tabs -->
+                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="article-tab" data-bs-toggle="tab" data-bs-target="#article" type="button" role="tab" aria-controls="article" aria-selected="true">ارسال مقاله</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="news-tab" data-bs-toggle="tab" data-bs-target="#news" type="button" role="tab" aria-controls="news" aria-selected="false">ارسال خبر</button>
+                    </li>
+                </ul>
+
+                <!-- Tab panes -->
+                <div class="tab-content pt-3">
+                    <div class="tab-pane active" id="article" role="tabpanel" aria-labelledby="article-tab">
+                        <form action="/api/v1/articles" method="post">
+                            <div class="mb-3">
+                                <label for="article_title" class="form-label">عنوان مقاله:</label>
+                                <input type="text" id="article_title" name="title" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="article_content" class="form-label">محتوای مقاله:</label>
+                                <textarea id="article_content" name="content" rows="8" class="form-control"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">ارسال مقاله</button>
+                        </form>
+                    </div>
+                    <div class="tab-pane" id="news" role="tabpanel" aria-labelledby="news-tab">
+                        <form action="/api/v1/news" method="post">
+                             <div class="mb-3">
+                                <label for="news_title" class="form-label">عنوان خبر:</label>
+                                <input type="text" id="news_title" name="title" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="news_content" class="form-label">محتوای خبر:</label>
+                                <textarea id="news_content" name="content" rows="5" class="form-control"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">ارسال خبر</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
-    </main>
-</body>
-</html>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="h5 mb-0">محتواهای شما</h2>
+            </div>
+            <div class="card-body">
+                <p>در حال حاضر محتوایی ارسال نکرده‌اید.</p>
+                <!-- Later, this can list user's articles and news -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

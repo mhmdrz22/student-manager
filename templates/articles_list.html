@@ -1,132 +1,28 @@
-<!DOCTYPE html>
-<html lang="fa" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مقالات برگزیده - سامانه علمی</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f7f6;
-            color: #333;
-        }
-        .container {
-            width: 80%;
-            margin: auto;
-            overflow: hidden;
-        }
-        header {
-            background: #333;
-            color: #fff;
-            padding: 1rem 0;
-            border-bottom: #0779e4 3px solid;
-        }
-        header a {
-            color: #fff;
-            text-decoration: none;
-            text-transform: uppercase;
-        }
-        header ul { padding: 0; list-style: none; float: left; }
-        header li { display: inline; padding: 0 20px; }
-        header #branding { float: right; }
-        header #branding h1 { margin: 0; }
-        .page-title {
-            text-align: center;
-            padding: 40px 0;
-            color: #0779e4;
-        }
-        .articles-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-            padding: 20px 0;
-        }
-        .card {
-            background: #fff;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-        .card img {
-            width: 100%;
-            height: 180px;
-            object-fit: cover;
-        }
-        .card-content {
-            padding: 20px;
-            flex-grow: 1;
-        }
-        .card-content h3 {
-            margin-top: 0;
-        }
-        .card-content .author {
-            font-size: 0.9em;
-            color: #666;
-            margin-bottom: 10px;
-        }
-        .card-content p {
-            flex-grow: 1;
-        }
-        .card-content a {
-            display: inline-block;
-            background: #0779e4;
-            color: #fff;
-            padding: 8px 15px;
-            text-decoration: none;
-            border-radius: 5px;
-            margin-top: 15px;
-        }
-        footer {
-            background: #333;
-            color: #fff;
-            text-align: center;
-            padding: 20px;
-            margin-top: 30px;
-        }
-    </style>
-</head>
-<body>
-    <header>
-        <div class="container">
-            <div id="branding">
-                <h1><a href="/">سامانه علمی</a></h1>
-            </div>
-            <nav>
-                <ul>
-                    <li><a href="/">خانه</a></li>
-                    <li><a href="/news">اخبار</a></li>
-                    <li><a href="/articles">مقالات</a></li>
-                    <li><a href="/dashboard">ارسال مقاله</a></li>
-                </ul>
-            </nav>
-        </div>
-    </header>
+{% extends "base.html" %}
 
-    <div class="container">
-        <h1 class="page-title">مقالات برگزیده</h1>
-        <div class="articles-grid">
-            {% for article in articles_list %}
-            <div class="card">
-                <img src="{{ article.image_url or 'https://via.placeholder.com/400x200.png?text=Article' }}" alt="{{ article.title }}">
-                <div class="card-content">
-                    <h3>{{ article.title }}</h3>
-                    <p class="author">نویسنده: {{ article.owner.username }}</p>
-                    <p>{{ article.summary or article.content[:120] }}...</p>
-                    <a href="/articles/{{ article.id }}">ادامه مطلب</a>
-                </div>
+{% block title %}مقالات برگزیده - سامانه علمی{% endblock %}
+
+{% block content %}
+<h1 class="text-center mb-4">مقالات برگزیده</h1>
+<div class="row">
+    {% for article in articles_list %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100 shadow-sm">
+            <img src="{{ article.image_url or 'https://via.placeholder.com/400x200.png?text=Article' }}" class="card-img-top" alt="{{ article.title }}">
+            <div class="card-body d-flex flex-column">
+                <h5 class="card-title">{{ article.title }}</h5>
+                <p class="card-text">{{ article.summary or article.content[:120] }}...</p>
+                <a href="/articles/{{ article.id }}" class="btn btn-primary mt-auto">ادامه مطلب</a>
             </div>
-            {% else %}
-            <p>در حال حاضر مقاله‌ای برای نمایش وجود ندارد.</p>
-            {% endfor %}
+            <div class="card-footer text-muted">
+                نویسنده: {{ article.owner.username }} | تاریخ: {{ article.created_at.strftime('%Y-%m-%d') }}
+            </div>
         </div>
     </div>
-
-    <footer>
-        <p>تمامی حقوق این وب‌سایت محفوظ است &copy; 2024</p>
-    </footer>
-</body>
-</html>
+    {% else %}
+    <div class="col">
+        <p class="text-center">در حال حاضر مقاله‌ای برای نمایش وجود ندارد.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

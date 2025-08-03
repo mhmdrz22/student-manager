@@ -48,6 +48,7 @@ class NewsBase(BaseModel):
     summary: str | None = None
     content: str
     image_url: str | None = None
+    category: str | None = None
 
 class NewsCreate(NewsBase):
     pass
