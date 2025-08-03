@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ news.title }} - سامانه علمی</title>
+    <title>آخرین اخبار - سامانه علمی</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -13,10 +13,9 @@
             color: #333;
         }
         .container {
-            width: 70%;
+            width: 80%;
             margin: auto;
             overflow: hidden;
-            padding: 20px;
         }
         header {
             background: #333;
@@ -33,34 +32,48 @@
         header li { display: inline; padding: 0 20px; }
         header #branding { float: right; }
         header #branding h1 { margin: 0; }
-        .news-content {
+        .page-title {
+            text-align: center;
+            padding: 40px 0;
+            color: #0779e4;
+        }
+        .news-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px 0;
+        }
+        .card {
             background: #fff;
-            padding: 30px;
-            margin-top: 30px;
             border-radius: 5px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
-        .news-content h1 {
-            color: #0779e4;
+        .card img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+        }
+        .card-content {
+            padding: 20px;
+            flex-grow: 1;
+        }
+        .card-content h3 {
             margin-top: 0;
         }
-        .news-meta {
-            margin-bottom: 20px;
-            color: #666;
-            font-size: 14px;
+        .card-content p {
+            flex-grow: 1;
         }
-        .news-meta span {
-            margin-left: 15px;
-        }
-        .news-content img {
-            max-width: 100%;
-            height: auto;
+        .card-content a {
+            display: inline-block;
+            background: #0779e4;
+            color: #fff;
+            padding: 8px 15px;
+            text-decoration: none;
             border-radius: 5px;
-            margin-bottom: 20px;
-        }
-        .news-content p {
-            line-height: 1.8;
-            text-align: justify;
+            margin-top: 15px;
         }
         footer {
             background: #333;
@@ -88,17 +101,21 @@
     </header>
 
     <div class="container">
-        <article class="news-content">
-            <h1>{{ news.title }}</h1>
-            <div class="news-meta">
-                <span><strong>نویسنده:</strong> {{ news.owner.username }}</span>
-                <span><strong>تاریخ انتشار:</strong> {{ news.created_at.strftime('%Y-%m-%d') }}</span>
+        <h1 class="page-title">آخرین اخبار</h1>
+        <div class="news-grid">
+            {% for news in news_list %}
+            <div class="card">
+                <img src="{{ news.image_url or 'https://via.placeholder.com/400x200.png?text=News' }}" alt="{{ news.title }}">
+                <div class="card-content">
+                    <h3>{{ news.title }}</h3>
+                    <p>{{ news.content[:120] }}...</p>
+                    <a href="/news/{{ news.id }}">ادامه مطلب</a>
+                </div>
             </div>
-            {% if news.image_url %}
-            <img src="{{ news.image_url }}" alt="{{ news.title }}">
-            {% endif %}
-            <p>{{ news.content }}</p>
-        </article>
+            {% else %}
+            <p>در حال حاضر خبری برای نمایش وجود ندارد.</p>
+            {% endfor %}
+        </div>
     </div>
 
     <footer>

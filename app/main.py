@@ -145,6 +145,12 @@ async def login_page(request: Request):
     """Serves the login page."""
     return templates.TemplateResponse("login.html", {"request": request})
 
+@app.get("/news", response_class=HTMLResponse)
+async def news_list_page(request: Request, db: Session = Depends(get_db)):
+    """Serves the page with a list of all news articles."""
+    news_items = db.query(models.News).filter(models.News.published == True).order_by(models.News.created_at.desc()).all()
+    return templates.TemplateResponse("news_list.html", {"request": request, "news_list": news_items})
+
 @app.get("/news/{news_id}", response_class=HTMLResponse)
 async def news_detail_page(request: Request, news_id: int, db: Session = Depends(get_db)):
     """Serves the page for a single news article."""
