@@ -132,18 +132,16 @@
         <div class="container">
             <h2>آخرین اخبار</h2>
             <div class="card-container">
+                {% for news in news_list %}
                 <div class="card">
-                    <h3>آغاز به کار سامانه</h3>
-                    <p>سامانه مدیریت مقالات و رویدادهای علمی رسما آغاز به کار کرد. از این پس می‌توانید مقالات خود را از طریق این سامانه برای داوری ارسال کنید.</p>
+                    <img src="{{ news.image_url or 'https://via.placeholder.com/400x200.png?text=News+Image' }}" alt="{{ news.title }}" style="width:100%; border-radius: 5px;">
+                    <h3>{{ news.title }}</h3>
+                    <p>{{ news.content[:100] }}...</p> {# Show first 100 characters #}
+                    <a href="/news/{{ news.id }}" class="button" style="background:#0779e4; display:block; text-align:center;">ادامه مطلب</a>
                 </div>
-                <div class="card">
-                    <h3>فراخوان مقاله برای کنفرانس ملی</h3>
-                    <p>کنفرانس ملی علوم کامپیوتر از کلیه پژوهشگران دعوت به عمل می‌آورد تا مقالات خود را تا تاریخ معین ارسال نمایند.</p>
-                </div>
-                <div class="card">
-                    <h3>کارگاه آموزشی جدید</h3>
-                    <p>یک کارگاه آموزشی با موضوع "هوش مصنوعی و یادگیری عمیق" در تاریخ ۲۰ام ماه آینده برگزار خواهد شد. برای ثبت نام به بخش رویدادها مراجعه کنید.</p>
-                </div>
+                {% else %}
+                <p>در حال حاضر خبری برای نمایش وجود ندارد.</p>
+                {% endfor %}
             </div>
         </div>
     </section>

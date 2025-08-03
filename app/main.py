@@ -120,9 +120,10 @@ app.include_router(api_router)
 # --- Frontend Serving ---
 
 @app.get("/", response_class=HTMLResponse)
-async def read_root(request: Request):
-    """Serves the main page."""
-    return templates.TemplateResponse("index.html", {"request": request})
+async def read_root(request: Request, db: Session = Depends(get_db)):
+    """Serves the main page and displays the latest news."""
+    news_items = db.query(models.News).filter(models.News.published == True).order_by(models.News.id.desc()).limit(3).all()
+    return templates.TemplateResponse("index.html", {"request": request, "news_list": news_items})
 
 @app.get("/register", response_class=HTMLResponse)
 async def register_page(request: Request):
@@ -133,6 +134,14 @@ async def register_page(request: Request):
 async def login_page(request: Request):
     """Serves the login page."""
     return templates.TemplateResponse("login.html", {"request": request})
+
+@app.get("/news/{news_id}", response_class=HTMLResponse)
+async def news_detail_page(request: Request, news_id: int, db: Session = Depends(get_db)):
+    """Serves the page for a single news article."""
+    news_item = db.query(models.News).filter(models.News.id == news_id, models.News.published == True).first()
+    if not news_item:
+        raise HTTPException(status_code=404, detail="News not found")
+    return templates.TemplateResponse("news_detail.html", {"request": request, "news": news_item})
 
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard_page(request: Request, db: Session = Depends(get_db)):
