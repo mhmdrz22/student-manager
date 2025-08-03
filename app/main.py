@@ -1,18 +1,32 @@
-from fastapi import FastAPI, APIRouter, Request
-from fastapi.responses import HTMLResponse
+from fastapi import Depends, FastAPI, APIRouter, Request, HTTPException
+from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import uvicorn
 from pathlib import Path
 
 import os
-from .database import create_db_and_tables
+from sqlalchemy.orm import Session
+from . import models, schemas, security
+from .database import SessionLocal, engine
+
+# This was moved to the startup event
+# models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Scientific Association System",
     description="A system for managing articles, news, and scientific events.",
     version="0.1.0"
 )
+
+# Dependency to get a DB session
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 # This is needed to serve HTML templates
 templates = Jinja2Templates(directory="templates")
@@ -30,15 +44,53 @@ api_router = APIRouter(prefix="/api/v1")
 
 # --- API Endpoints (Placeholders) ---
 
-@api_router.post("/register")
-async def register_user():
-    """Placeholder for user registration logic."""
-    return {"message": "User registration endpoint"}
+@api_router.post("/register", response_model=schemas.User)
+def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    """
+    Handles user registration.
+    Hashes the password and saves the new user to the database.
+    """
+    db_user = db.query(models.User).filter(models.User.username == user.username).first()
+    if db_user:
+        raise HTTPException(status_code=400, detail="Username already registered")
 
-@api_router.post("/login")
-async def login_user():
-    """Placeholder for user login logic."""
-    return {"message": "User login endpoint"}
+    db_user_email = db.query(models.User).filter(models.User.email == user.email).first()
+    if db_user_email:
+        raise HTTPException(status_code=400, detail="Email already registered")
+
+    hashed_password = security.get_password_hash(user.password)
+    db_user = models.User(
+        username=user.username,
+        email=user.email,
+        hashed_password=hashed_password
+    )
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+@api_router.post("/login/token", response_model=schemas.Token)
+async def login_for_access_token(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db)
+):
+    """
+    Handles user login and returns a JWT access token.
+    """
+    user = db.query(models.User).filter(models.User.username == form_data.username).first()
+    if not user or not security.verify_password(form_data.password, user.hashed_password):
+        raise HTTPException(
+            status_code=401,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    access_token = security.create_access_token(
+        data={"sub": user.username}
+    )
+
+    response = RedirectResponse(url="/dashboard", status_code=302)
+    response.set_cookie(key="access_token", value=f"Bearer {access_token}", httponly=True)
+    return response
 
 @api_router.post("/articles")
 async def submit_article():
@@ -77,9 +129,26 @@ async def login_page(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
 
 @app.get("/dashboard", response_class=HTMLResponse)
-async def dashboard_page(request: Request):
-    """Serves the user dashboard page."""
-    return templates.TemplateResponse("dashboard.html", {"request": request})
+async def dashboard_page(request: Request, db: Session = Depends(get_db)):
+    """
+    Serves the user dashboard page.
+    This route is now protected.
+    """
+    try:
+        token = request.cookies.get("access_token")
+        # The token is expected to be in the format "Bearer <token>"
+        token_value = token.split(" ")[1] if token else None
+
+        if not token_value:
+            # Redirect to login if no token
+            return RedirectResponse(url="/login", status_code=302)
+
+        user = security.get_current_user(token=token_value, db=db)
+
+        return templates.TemplateResponse("dashboard.html", {"request": request, "user": user})
+    except Exception:
+        # If token is invalid or expired, or any other error occurs, redirect to login
+        return RedirectResponse(url="/login", status_code=302)
 
 
 # The uvicorn command should be used to run the app, for example:

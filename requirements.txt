@@ -4,3 +4,5 @@ python-multipart
 jinja2
 SQLAlchemy
 psycopg2-binary
+passlib[bcrypt]
+python-jose[cryptography]
