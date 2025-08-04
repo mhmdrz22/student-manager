@@ -1,108 +1,23 @@
-<!DOCTYPE html>
-<html lang="fa" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ news.title }} - سامانه علمی</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f7f6;
-            color: #333;
-        }
-        .container {
-            width: 70%;
-            margin: auto;
-            overflow: hidden;
-            padding: 20px;
-        }
-        header {
-            background: #333;
-            color: #fff;
-            padding: 1rem 0;
-            border-bottom: #0779e4 3px solid;
-        }
-        header a {
-            color: #fff;
-            text-decoration: none;
-            text-transform: uppercase;
-        }
-        header ul { padding: 0; list-style: none; float: left; }
-        header li { display: inline; padding: 0 20px; }
-        header #branding { float: right; }
-        header #branding h1 { margin: 0; }
-        .news-content {
-            background: #fff;
-            padding: 30px;
-            margin-top: 30px;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        .news-content h1 {
-            color: #0779e4;
-            margin-top: 0;
-        }
-        .news-meta {
-            margin-bottom: 20px;
-            color: #666;
-            font-size: 14px;
-        }
-        .news-meta span {
-            margin-left: 15px;
-        }
-        .news-content img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 5px;
-            margin-bottom: 20px;
-        }
-        .news-content p {
-            line-height: 1.8;
-            text-align: justify;
-        }
-        footer {
-            background: #333;
-            color: #fff;
-            text-align: center;
-            padding: 20px;
-            margin-top: 30px;
-        }
-    </style>
-</head>
-<body>
-    <header>
-        <div class="container">
-            <div id="branding">
-                <h1><a href="/">سامانه علمی</a></h1>
-            </div>
-            <nav>
-                <ul>
-                    <li><a href="/">خانه</a></li>
-                    <li><a href="/news">اخبار</a></li>
-                    <li><a href="/dashboard">ارسال مقاله</a></li>
-                </ul>
-            </nav>
+{% extends "base.html" %}
+{% block title %}{{ news.title }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <h1 class="mb-3">{{ news.title }}</h1>
+        <p class="text-muted">
+            دسته: <span class="badge bg-primary">{{ news.category }}</span> |
+            نویسنده: {{ news.owner.username }} |
+            تاریخ انتشار: {{ news.created_at.strftime('%Y-%m-%d') }}
+        </p>
+        {% if news.image_url %}
+        <img src="{{ news.image_url }}" class="img-fluid rounded my-3" alt="{{ news.title }}">
+        {% endif %}
+        <div class="lead">
+            <p>{{ news.summary }}</p>
         </div>
-    </header>
-
-    <div class="container">
-        <article class="news-content">
-            <h1>{{ news.title }}</h1>
-            <div class="news-meta">
-                <span><strong>نویسنده:</strong> {{ news.owner.username }}</span>
-                <span><strong>تاریخ انتشار:</strong> {{ news.created_at.strftime('%Y-%m-%d') }}</span>
-            </div>
-            {% if news.image_url %}
-            <img src="{{ news.image_url }}" alt="{{ news.title }}">
-            {% endif %}
-            <p>{{ news.content }}</p>
-        </article>
+        <hr>
+        <p>{{ news.content }}</p>
+        <a href="/news" class="btn btn-secondary mt-3">بازگشت به لیست اخبار</a>
     </div>
-
-    <footer>
-        <p>تمامی حقوق این وب‌سایت محفوظ است &copy; 2024</p>
-    </footer>
-</body>
-</html>
+</div>
+{% endblock %}

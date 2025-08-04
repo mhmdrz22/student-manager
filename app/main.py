@@ -114,9 +114,27 @@ async def submit_article(
     return RedirectResponse(url="/dashboard", status_code=302)
 
 @api_router.post("/news")
-async def submit_news():
+async def submit_news(
+    title: str = Form(...),
+    summary: str = Form(...),
+    content: str = Form(...),
+    category: str = Form(...),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(security.get_current_active_user)
+):
     """Placeholder for news submission logic."""
-    return {"message": "News submission endpoint"}
+    db_news = models.News(
+        title=title,
+        summary=summary,
+        content=content,
+        category=category,
+        owner_id=current_user.id,
+        published=True # Or based on admin approval
+    )
+    db.add(db_news)
+    db.commit()
+    db.refresh(db_news)
+    return RedirectResponse(url="/dashboard", status_code=302)
 
 @api_router.post("/events")
 async def create_event():
@@ -126,13 +144,14 @@ async def create_event():
 
 app.include_router(api_router)
 
+from sqlalchemy.orm import joinedload
 
 # --- Frontend Serving ---
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request, db: Session = Depends(get_db)):
     """Serves the main page and displays the latest news."""
-    news_items = db.query(models.News).filter(models.News.published == True).order_by(models.News.id.desc()).limit(3).all()
+    news_items = db.query(models.News).options(joinedload(models.News.owner)).filter(models.News.published == True).order_by(models.News.created_at.desc()).limit(3).all()
     return templates.TemplateResponse("index.html", {"request": request, "news_list": news_items})
 
 @app.get("/register", response_class=HTMLResponse)
@@ -148,16 +167,30 @@ async def login_page(request: Request):
 @app.get("/news", response_class=HTMLResponse)
 async def news_list_page(request: Request, db: Session = Depends(get_db)):
     """Serves the page with a list of all news articles."""
-    news_items = db.query(models.News).filter(models.News.published == True).order_by(models.News.created_at.desc()).all()
+    news_items = db.query(models.News).options(joinedload(models.News.owner)).filter(models.News.published == True).order_by(models.News.created_at.desc()).all()
     return templates.TemplateResponse("news_list.html", {"request": request, "news_list": news_items})
 
 @app.get("/news/{news_id}", response_class=HTMLResponse)
 async def news_detail_page(request: Request, news_id: int, db: Session = Depends(get_db)):
     """Serves the page for a single news article."""
-    news_item = db.query(models.News).filter(models.News.id == news_id, models.News.published == True).first()
+    news_item = db.query(models.News).options(joinedload(models.News.owner)).filter(models.News.id == news_id, models.News.published == True).first()
     if not news_item:
         raise HTTPException(status_code=404, detail="News not found")
     return templates.TemplateResponse("news_detail.html", {"request": request, "news": news_item})
+
+@app.get("/articles", response_class=HTMLResponse)
+async def articles_list_page(request: Request, db: Session = Depends(get_db)):
+    """Serves the page with a list of all articles."""
+    articles = db.query(models.Article).options(joinedload(models.Article.owner)).filter(models.Article.published == True).order_by(models.Article.created_at.desc()).all()
+    return templates.TemplateResponse("articles_list.html", {"request": request, "articles_list": articles})
+
+@app.get("/articles/{article_id}", response_class=HTMLResponse)
+async def article_detail_page(request: Request, article_id: int, db: Session = Depends(get_db)):
+    """Serves the page for a single article."""
+    article = db.query(models.Article).options(joinedload(models.Article.owner)).filter(models.Article.id == article_id, models.Article.published == True).first()
+    if not article:
+        raise HTTPException(status_code=404, detail="Article not found")
+    return templates.TemplateResponse("article_detail.html", {"request": request, "article": article})
 
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard_page(request: Request, db: Session = Depends(get_db)):

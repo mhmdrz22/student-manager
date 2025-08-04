@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}{{ article.title }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <h1 class="mb-3">{{ article.title }}</h1>
+        <p class="text-muted">
+            نویسنده: {{ article.owner.username }} |
+            تاریخ انتشار: {{ article.created_at.strftime('%Y-%m-%d') }}
+        </p>
+        {% if article.image_url %}
+        <img src="{{ article.image_url }}" class="img-fluid rounded my-3" alt="{{ article.title }}">
+        {% endif %}
+        <div class="lead">
+            <p>{{ article.summary }}</p>
+        </div>
+        <hr>
+        <p>{{ article.content }}</p>
+        <a href="/articles" class="btn btn-secondary mt-3">بازگشت به لیست مقالات</a>
+    </div>
+</div>
+{% endblock %}
