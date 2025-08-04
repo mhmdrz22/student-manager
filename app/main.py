@@ -130,7 +130,7 @@ async def submit_article(
         image_url=image_url,
         file_path=file_path,
         owner_id=current_user.id,
-        published=True # Or based on admin approval
+        published=False # Set to false, requires manager approval
     )
     db.add(db_article)
     db.commit()
@@ -146,9 +146,9 @@ async def submit_news(
     content: str = Form(...),
     category: str = Form(...),
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(security.get_current_active_user)
+    current_user: models.User = Depends(security.require_role(["member", "manager"]))
 ):
-    """Handles news submission from any logged-in user."""
+    """Handles news submission from a logged-in user with member or manager role."""
     db_news = models.News(
         title=title,
         summary=summary,
@@ -335,6 +335,21 @@ def update_user_role(
     db.commit()
     return RedirectResponse(url="/dashboard", status_code=302)
 
+@api_router.post("/articles/{article_id}/approve", response_class=HTMLResponse)
+def approve_article(
+    article_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(security.require_role(["manager"]))
+):
+    """Approves an article, setting its 'published' status to True."""
+    article_to_approve = db.query(models.Article).filter(models.Article.id == article_id).first()
+    if not article_to_approve:
+        raise HTTPException(status_code=404, detail="Article not found")
+
+    article_to_approve.published = True
+    db.commit()
+    return RedirectResponse(url="/dashboard", status_code=302)
+
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard_page(request: Request, db: Session = Depends(get_db)):
     """
@@ -351,13 +366,16 @@ async def dashboard_page(request: Request, db: Session = Depends(get_db)):
         user = security.get_current_user(token=token_value, db=db)
 
         user_list = []
+        pending_articles = []
         if user.token_role == 'manager':
             user_list = db.query(models.User).all()
+            pending_articles = db.query(models.Article).filter(models.Article.published == False).all()
 
         return templates.TemplateResponse("dashboard.html", {
             "request": request,
             "user": user,
-            "user_list": user_list
+            "user_list": user_list,
+            "pending_articles": pending_articles
         })
     except Exception:
         return RedirectResponse(url="/login", status_code=302)
