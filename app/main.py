@@ -24,10 +24,14 @@ app = FastAPI(
 # This is needed to serve HTML templates
 templates = Jinja2Templates(directory="templates")
 
+from create_admin import seed_database
+
 @app.on_event("startup")
 async def startup_event():
     # Create DB and tables first
     create_db_and_tables()
+    # Seed the database with admin user and sample data
+    seed_database()
     # Then mount static files
     app.mount("/static", StaticFiles(directory="static"), name="static")
 
