@@ -1,4 +1,5 @@
-from fastapi import Depends, FastAPI, APIRouter, Request, HTTPException, Form
+from fastapi import Depends, FastAPI, APIRouter, Request, HTTPException, Form, File, UploadFile
+import shutil
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
@@ -34,6 +35,7 @@ async def startup_event():
     seed_database()
     # Then mount static files
     app.mount("/static", StaticFiles(directory="static"), name="static")
+    app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 # API Router for versioning
 api_router = APIRouter(prefix="/api/v1")
@@ -97,19 +99,30 @@ async def login_for_access_token(
 async def submit_article(
     title: str = Form(...),
     summary: str = Form(...),
-    content: str = Form(...),
+    content: str = Form(None),
     image_url: str = Form(None),
+    file: UploadFile = File(...),
     db: Session = Depends(get_db),
     current_user: models.User = Depends(security.require_role(["member", "manager"]))
 ):
     """
     Handles article submission from a logged-in user with member or manager role.
     """
+    # Create uploads directory if it doesn't exist
+    upload_dir = "uploads"
+    os.makedirs(upload_dir, exist_ok=True)
+
+    # Save the file
+    file_path = os.path.join(upload_dir, file.filename)
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
     db_article = models.Article(
         title=title,
         summary=summary,
         content=content,
         image_url=image_url,
+        file_path=file_path,
         owner_id=current_user.id,
         published=True # Or based on admin approval
     )

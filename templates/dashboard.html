@@ -23,11 +23,12 @@
                 </ul>
                 <div class="tab-content pt-3">
                     <div class="tab-pane active" id="article" role="tabpanel">
-                        <form action="/api/v1/articles" method="post">
+                        <form action="/api/v1/articles" method="post" enctype="multipart/form-data">
                             <div class="mb-3"><label class="form-label">عنوان مقاله:</label><input type="text" name="title" class="form-control" required></div>
-                            <div class="mb-3"><label class="form-label">خلاصه مقاله:</label><textarea name="summary" rows="3" class="form-control"></textarea></div>
-                            <div class="mb-3"><label class="form-label">محتوای مقاله:</label><textarea name="content" rows="8" class="form-control" required></textarea></div>
-                            <div class="mb-3"><label class="form-label">آدرس تصویر:</label><input type="text" name="image_url" class="form-control"></div>
+                            <div class="mb-3"><label class="form-label">خلاصه مقاله:</label><textarea name="summary" rows="3" class="form-control" required></textarea></div>
+                            <div class="mb-3"><label class="form-label">محتوای متنی (اختیاری):</label><textarea name="content" rows="6" class="form-control"></textarea></div>
+                            <div class="mb-3"><label class="form-label">آدرس تصویر (اختیاری):</label><input type="text" name="image_url" class="form-control"></div>
+                            <div class="mb-3"><label class="form-label">فایل مقاله (PDF, DOCX):</label><input type="file" name="file" class="form-control" required></div>
                             <button type="submit" class="btn btn-primary">ارسال مقاله</button>
                         </form>
                     </div>
