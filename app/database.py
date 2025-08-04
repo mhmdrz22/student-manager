@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 # The database URL for PostgreSQL.
 # IMPORTANT: Replace the placeholder values with your actual database credentials.
 # Format: "postgresql://<user>:<password>@<host>/<dbname>"
-SQLALCHEMY_DATABASE_URL = "postgresql://user:password@localhost/scientific_db"
+SQLALCHEMY_DATABASE_URL = "postgresql://postgres:mhmdrz17@127.0.0.1/scientific_db"
 
 # The SQLAlchemy engine is the entry point to the database.
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
