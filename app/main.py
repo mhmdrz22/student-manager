@@ -29,6 +29,9 @@ from create_admin import seed_database
 
 @app.on_event("startup")
 async def startup_event():
+    # Create required directories
+    os.makedirs("uploads", exist_ok=True)
+
     # Create DB and tables first
     create_db_and_tables()
     # Seed the database with admin user and sample data
