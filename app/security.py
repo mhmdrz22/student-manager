@@ -1,32 +1,28 @@
 from datetime import datetime, timedelta
 from typing import Optional
 
+import bcrypt
 from fastapi import Depends, HTTPException, Request
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
 from .models import User
 from .database import get_db
 
-# Password Hashing Setup
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 # JWT Configuration
-# In a real application, this should be a secret key stored securely, not hardcoded.
 SECRET_KEY = "a-very-secret-key-that-should-be-in-an-env-file"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verifies a plain password against a hashed one."""
-    return pwd_context.verify(plain_password, hashed_password)
+    """Verifies a plain password against a hashed one using bcrypt."""
+    return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
 
 
 def get_password_hash(password: str) -> str:
-    """Hashes a plain password."""
-    return pwd_context.hash(password)
+    """Hashes a plain password using bcrypt."""
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
 
 def create_access_token(user: User, expires_delta: Optional[timedelta] = None):
@@ -45,7 +41,6 @@ def create_access_token(user: User, expires_delta: Optional[timedelta] = None):
     return encoded_jwt
 
 
-# This function will be the dependency
 def get_current_user(token: str, db: Session):
     credentials_exception = HTTPException(
         status_code=302,
@@ -58,13 +53,10 @@ def get_current_user(token: str, db: Session):
         if username is None:
             raise credentials_exception
 
-        # We can trust the role from the token, but it's good practice
-        # to fetch the user from the DB to ensure they still exist and are active.
         user = db.query(User).filter(User.username == username).first()
         if user is None:
             raise credentials_exception
 
-        # Optionally, attach the role from the token to the user object for quick access
         user.token_role = payload.get("role")
         return user
 
