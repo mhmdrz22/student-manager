@@ -17,7 +17,7 @@ def seed_database():
                 username="admin",
                 email="admin@example.com",
                 hashed_password=get_password_hash("1234"),
-                is_admin=True
+                role="manager"
             )
             db.add(admin_user)
             db.commit()

@@ -11,7 +11,7 @@ class User(Base):
     username = Column(String, unique=True, index=True)
     email = Column(String, unique=True, index=True)
     hashed_password = Column(String)
-    is_admin = Column(Boolean, default=False)
+    role = Column(String, default="user") # Roles: user, member, manager
 
     articles = relationship("Article", back_populates="owner")
     news = relationship("News", back_populates="owner")

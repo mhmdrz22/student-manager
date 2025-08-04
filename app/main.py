@@ -83,9 +83,7 @@ async def login_for_access_token(
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    access_token = security.create_access_token(
-        data={"sub": user.username}
-    )
+    access_token = security.create_access_token(user=user)
 
     response = RedirectResponse(url="/dashboard", status_code=302)
     response.set_cookie(key="access_token", value=f"Bearer {access_token}", httponly=True)
@@ -96,10 +94,10 @@ async def submit_article(
     title: str = Form(...),
     content: str = Form(...),
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(security.get_current_active_user)
+    current_user: models.User = Depends(security.require_role(["member", "manager"]))
 ):
     """
-    Handles article submission from a logged-in user.
+    Handles article submission from a logged-in user with member or manager role.
     """
     db_article = models.Article(
         title=title,
@@ -120,9 +118,9 @@ async def submit_news(
     content: str = Form(...),
     category: str = Form(...),
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(security.get_current_active_user)
+    current_user: models.User = Depends(security.require_role(["member", "manager"]))
 ):
-    """Placeholder for news submission logic."""
+    """Handles news submission from a logged-in user with member or manager role."""
     db_news = models.News(
         title=title,
         summary=summary,
@@ -192,26 +190,61 @@ async def article_detail_page(request: Request, article_id: int, db: Session = D
         raise HTTPException(status_code=404, detail="Article not found")
     return templates.TemplateResponse("article_detail.html", {"request": request, "article": article})
 
+# --- Admin/Manager Specific Endpoints ---
+
+@app.get("/admin/users", response_model=list[schemas.User])
+def list_users(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(security.require_role(["manager"]))
+):
+    """Lists all users. For managers only."""
+    users = db.query(models.User).all()
+    return users
+
+@app.post("/admin/users/{user_id}/role")
+def update_user_role(
+    user_id: int,
+    new_role: str = Form(...),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(security.require_role(["manager"]))
+):
+    """Updates a user's role. For managers only."""
+    if new_role not in ["user", "member", "manager"]:
+        raise HTTPException(status_code=400, detail="Invalid role specified.")
+
+    user_to_update = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user_to_update:
+        raise HTTPException(status_code=404, detail="User not found.")
+
+    user_to_update.role = new_role
+    db.commit()
+    return RedirectResponse(url="/dashboard", status_code=302)
+
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard_page(request: Request, db: Session = Depends(get_db)):
     """
     Serves the user dashboard page.
     This route is now protected.
+    If the user is a manager, it also fetches the list of all users.
     """
     try:
         token = request.cookies.get("access_token")
-        # The token is expected to be in the format "Bearer <token>"
         token_value = token.split(" ")[1] if token else None
-
         if not token_value:
-            # Redirect to login if no token
             return RedirectResponse(url="/login", status_code=302)
 
         user = security.get_current_user(token=token_value, db=db)
 
-        return templates.TemplateResponse("dashboard.html", {"request": request, "user": user})
+        user_list = []
+        if user.token_role == 'manager':
+            user_list = db.query(models.User).all()
+
+        return templates.TemplateResponse("dashboard.html", {
+            "request": request,
+            "user": user,
+            "user_list": user_list
+        })
     except Exception:
-        # If token is invalid or expired, or any other error occurs, redirect to login
         return RedirectResponse(url="/login", status_code=302)
 
 
