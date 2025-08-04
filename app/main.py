@@ -27,12 +27,15 @@ templates = Jinja2Templates(directory="templates")
 
 from create_admin import seed_database
 
+from .database import Base
+
 @app.on_event("startup")
 async def startup_event():
     # Create required directories
     os.makedirs("uploads", exist_ok=True)
 
-    # Create DB and tables first
+    # Reset and create DB and tables
+    Base.metadata.drop_all(bind=engine)
     create_db_and_tables()
     # Seed the database with admin user and sample data
     seed_database()
