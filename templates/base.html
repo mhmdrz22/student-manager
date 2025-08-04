@@ -20,7 +20,15 @@
                         <li class="nav-item"><a class="nav-link" href="/">خانه</a></li>
                         <li class="nav-item"><a class="nav-link" href="/news">اخبار</a></li>
                         <li class="nav-item"><a class="nav-link" href="/articles">مقالات</a></li>
-                        <li class="nav-item"><a class="nav-link" href="/dashboard">داشبورد</a></li>
+                    </ul>
+                    <ul class="navbar-nav">
+                        {% if user %}
+                            <li class="nav-item"><a class="nav-link" href="/dashboard">داشبورد ({{ user.username }})</a></li>
+                            <li class="nav-item"><a class="btn btn-danger" href="/logout">خروج</a></li>
+                        {% else %}
+                            <li class="nav-item"><a class="btn btn-secondary" href="/login">ورود</a></li>
+                            <li class="nav-item ms-2"><a class="btn btn-primary" href="/register">ثبت نام</a></li>
+                        {% endif %}
                     </ul>
                 </div>
             </div>

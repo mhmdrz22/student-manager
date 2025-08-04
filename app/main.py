@@ -96,7 +96,9 @@ async def login_for_access_token(
 @api_router.post("/articles", response_class=HTMLResponse)
 async def submit_article(
     title: str = Form(...),
+    summary: str = Form(...),
     content: str = Form(...),
+    image_url: str = Form(None),
     db: Session = Depends(get_db),
     current_user: models.User = Depends(security.require_role(["member", "manager"]))
 ):
@@ -105,8 +107,11 @@ async def submit_article(
     """
     db_article = models.Article(
         title=title,
+        summary=summary,
         content=content,
-        owner_id=current_user.id
+        image_url=image_url,
+        owner_id=current_user.id,
+        published=True # Or based on admin approval
     )
     db.add(db_article)
     db.commit()
@@ -153,8 +158,17 @@ from sqlalchemy.orm import joinedload
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request, db: Session = Depends(get_db)):
     """Serves the main page and displays the latest news."""
+    user = None
+    try:
+        token = request.cookies.get("access_token")
+        if token:
+            token_value = token.split(" ")[1]
+            user = security.get_current_user(token=token_value, db=db)
+    except Exception:
+        user = None # Fail silently if token is invalid
+
     news_items = db.query(models.News).options(joinedload(models.News.owner)).filter(models.News.published == True).order_by(models.News.created_at.desc()).limit(3).all()
-    return templates.TemplateResponse("index.html", {"request": request, "news_list": news_items})
+    return templates.TemplateResponse("index.html", {"request": request, "news_list": news_items, "user": user})
 
 @app.get("/register", response_class=HTMLResponse)
 async def register_page(request: Request):
@@ -165,6 +179,13 @@ async def register_page(request: Request):
 async def login_page(request: Request):
     """Serves the login page."""
     return templates.TemplateResponse("login.html", {"request": request})
+
+@app.get("/logout")
+async def logout(response: HTMLResponse):
+    """Logs the user out by clearing the access token cookie."""
+    response = RedirectResponse(url="/", status_code=302)
+    response.delete_cookie(key="access_token")
+    return response
 
 @app.get("/news", response_class=HTMLResponse)
 async def news_list_page(request: Request, db: Session = Depends(get_db)):
