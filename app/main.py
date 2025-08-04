@@ -109,10 +109,10 @@ async def submit_article(
     image_url: str = Form(None),
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(security.require_role(["member", "manager"]))
+    current_user: models.User = Depends(security.get_current_active_user)
 ):
     """
-    Handles article submission from a logged-in user with member or manager role.
+    Handles article submission from any logged-in user.
     """
     # Create uploads directory if it doesn't exist
     upload_dir = "uploads"
@@ -146,9 +146,9 @@ async def submit_news(
     content: str = Form(...),
     category: str = Form(...),
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(security.require_role(["member", "manager"]))
+    current_user: models.User = Depends(security.get_current_active_user)
 ):
-    """Handles news submission from a logged-in user with member or manager role."""
+    """Handles news submission from any logged-in user."""
     db_news = models.News(
         title=title,
         summary=summary,

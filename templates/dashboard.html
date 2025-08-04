@@ -12,7 +12,6 @@
                 ارسال محتوای جدید
             </div>
             <div class="card-body">
-                {% if user.token_role in ['member', 'manager'] %}
                 <ul class="nav nav-tabs" id="myTab" role="tablist">
                     <li class="nav-item" role="presentation">
                         <button class="nav-link active" id="article-tab" data-bs-toggle="tab" data-bs-target="#article" type="button" role="tab">ارسال مقاله</button>
@@ -43,9 +42,6 @@
                         </form>
                     </div>
                 </div>
-                {% else %}
-                <p class="text-muted">شما برای ارسال محتوا دسترسی ندارید. برای کسب دسترسی، با مدیر تماس بگیرید.</p>
-                {% endif %}
             </div>
         </div>
     </div>
