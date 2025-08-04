@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}مقالات{% endblock %}
+{% block content %}
+<h1 class="text-center mb-4">لیست مقالات</h1>
+<div class="row">
+    {% for article in articles_list %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100 shadow-sm">
+            {% if article.image_url %}
+            <img src="{{ article.image_url }}" class="card-img-top" alt="{{ article.title }}">
+            {% endif %}
+            <div class="card-body d-flex flex-column">
+                <h5 class="card-title">{{ article.title }}</h5>
+                <p class="card-text">{{ article.summary }}</p>
+                <a href="/articles/{{ article.id }}" class="btn btn-primary mt-auto">ادامه مطلب</a>
+            </div>
+            <div class="card-footer text-muted">
+                نویسنده: {{ article.owner.username }} | تاریخ: {{ article.created_at.strftime('%Y-%m-%d') }}
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <p class="text-center">مقاله‌ای برای نمایش وجود ندارد.</p>
+    {% endfor %}
+</div>
+{% endblock %}

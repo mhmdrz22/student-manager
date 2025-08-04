@@ -1,53 +1,95 @@
-<!DOCTYPE html>
-<html lang="fa" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>داشبرد - سامانه علمی</title>
-    <style>
-        body { font-family: sans-serif; line-height: 1.6; margin: 20px; }
-        h1, h2 { color: #333; }
-        a { text-decoration: none; color: #007bff; }
-        nav a { margin-left: 15px; }
-        .content-section { margin-top: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
-    </style>
-</head>
-<body>
-    <header>
-        <h1>داشبرد کاربری</h1>
-        <nav>
-            <a href="/">خانه</a>
-            <a href="#">خروج</a>
-        </nav>
-    </header>
-    <main>
-        <h2>ارسال محتوای جدید</h2>
-        <div class="content-section">
-            <h3>ارسال مقاله</h3>
-            <form action="/api/v1/articles" method="post">
-                <label for="article_title">عنوان مقاله:</label><br>
-                <input type="text" id="article_title" name="title" style="width: 80%;"><br><br>
-                <label for="article_content">محتوای مقاله:</label><br>
-                <textarea id="article_content" name="content" rows="8" style="width: 80%;"></textarea><br><br>
-                <button type="submit">ارسال مقاله</button>
-            </form>
-        </div>
+{% extends "base.html" %}
+{% block title %}داشبورد{% endblock %}
+{% block content %}
+<h1 class="mb-4">داشبورد خوش آمدید, {{ user.username }}!</h1>
+<p>نقش شما: <span class="badge bg-success">{{ user.role }}</span></p>
 
-        <div class="content-section">
-            <h3>ارسال خبر</h3>
-            <form action="/api/v1/news" method="post">
-                <label for="news_title">عنوان خبر:</label><br>
-                <input type="text" id="news_title" name="title" style="width: 80%;"><br><br>
-                <label for="news_content">محتوای خبر:</label><br>
-                <textarea id="news_content" name="content" rows="5" style="width: 80%;"></textarea><br><br>
-                <button type="submit">ارسال خبر</button>
-            </form>
+<div class="row mt-4">
+    <!-- Left Column: Forms -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                ارسال محتوای جدید
+            </div>
+            <div class="card-body">
+                {% if user.token_role in ['member', 'manager'] %}
+                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="article-tab" data-bs-toggle="tab" data-bs-target="#article" type="button" role="tab">ارسال مقاله</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="news-tab" data-bs-toggle="tab" data-bs-target="#news" type="button" role="tab">ارسال خبر</button>
+                    </li>
+                </ul>
+                <div class="tab-content pt-3">
+                    <div class="tab-pane active" id="article" role="tabpanel">
+                        <form action="/api/v1/articles" method="post" enctype="multipart/form-data">
+                            <div class="mb-3"><label class="form-label">عنوان مقاله:</label><input type="text" name="title" class="form-control" required></div>
+                            <div class="mb-3"><label class="form-label">خلاصه مقاله:</label><textarea name="summary" rows="3" class="form-control" required></textarea></div>
+                            <div class="mb-3"><label class="form-label">محتوای متنی (اختیاری):</label><textarea name="content" rows="6" class="form-control"></textarea></div>
+                            <div class="mb-3"><label class="form-label">آدرس تصویر (اختیاری):</label><input type="text" name="image_url" class="form-control"></div>
+                            <div class="mb-3"><label class="form-label">فایل مقاله (PDF, DOCX):</label><input type="file" name="file" class="form-control" required></div>
+                            <button type="submit" class="btn btn-primary">ارسال مقاله</button>
+                        </form>
+                    </div>
+                    <div class="tab-pane" id="news" role="tabpanel">
+                        <form action="/api/v1/news" method="post">
+                            <div class="mb-3"><label class="form-label">عنوان خبر:</label><input type="text" name="title" class="form-control" required></div>
+                            <div class="mb-3"><label class="form-label">خلاصه خبر:</label><textarea name="summary" rows="3" class="form-control"></textarea></div>
+                            <div class="mb-3"><label class="form-label">دسته بندی:</label><input type="text" name="category" class="form-control"></div>
+                            <div class="mb-3"><label class="form-label">محتوای خبر:</label><textarea name="content" rows="5" class="form-control" required></textarea></div>
+                            <div class="mb-3"><label class="form-label">آدرس تصویر:</label><input type="text" name="image_url" class="form-control"></div>
+                            <button type="submit" class="btn btn-primary">ارسال خبر</button>
+                        </form>
+                    </div>
+                </div>
+                {% else %}
+                <p class="text-muted">شما برای ارسال محتوا دسترسی ندارید. برای کسب دسترسی، با مدیر تماس بگیرید.</p>
+                {% endif %}
+            </div>
         </div>
+    </div>
 
-        <div class="content-section">
-            <h2>محتواهای ارسال شده شما</h2>
-            <p>در حال حاضر محتوایی ارسال نکرده‌اید.</p>
+    <!-- Right Column: User Management -->
+    <div class="col-md-4">
+        {% if user.token_role == 'manager' and user_list %}
+        <div class="card">
+            <div class="card-header">
+                مدیریت کاربران
+            </div>
+            <div class="card-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>نام کاربری</th>
+                            <th>نقش فعلی</th>
+                            <th>تغییر نقش</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in user_list %}
+                        <tr>
+                            <td>{{ u.username }}</td>
+                            <td><span class="badge bg-secondary">{{ u.role }}</span></td>
+                            <td>
+                                {% if u.username != user.username %} {# Prevent manager from changing their own role #}
+                                <form action="/admin/users/{{ u.id }}/role" method="post" class="d-flex">
+                                    <select name="new_role" class="form-select form-select-sm me-2">
+                                        <option value="user" {% if u.role == 'user' %}selected{% endif %}>User</option>
+                                        <option value="member" {% if u.role == 'member' %}selected{% endif %}>Member</option>
+                                        <option value="manager" {% if u.role == 'manager' %}selected{% endif %}>Manager</option>
+                                    </select>
+                                    <button type="submit" class="btn btn-sm btn-outline-primary">ذخیره</button>
+                                </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
-    </main>
-</body>
-</html>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

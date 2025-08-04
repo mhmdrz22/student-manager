@@ -11,7 +11,7 @@ class User(Base):
     username = Column(String, unique=True, index=True)
     email = Column(String, unique=True, index=True)
     hashed_password = Column(String)
-    is_admin = Column(Boolean, default=False)
+    role = Column(String, default="user") # Roles: user, member, manager
 
     articles = relationship("Article", back_populates="owner")
     news = relationship("News", back_populates="owner")
@@ -21,8 +21,12 @@ class Article(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, index=True)
+    summary = Column(Text, nullable=True)
     content = Column(Text)
+    image_url = Column(String, nullable=True)
+    file_path = Column(String, nullable=True)
     published = Column(Boolean, default=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
     owner_id = Column(Integer, ForeignKey("users.id"))
 
     owner = relationship("User", back_populates="articles")
@@ -33,8 +37,10 @@ class News(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, index=True)
+    summary = Column(Text, nullable=True)
     content = Column(Text)
     image_url = Column(String, nullable=True)
+    category = Column(String, index=True, nullable=True)
     published = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     owner_id = Column(Integer, ForeignKey("users.id"))
