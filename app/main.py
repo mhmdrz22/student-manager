@@ -162,6 +162,51 @@ async def submit_news(
     db.refresh(db_news)
     return RedirectResponse(url="/dashboard", status_code=302)
 
+@api_router.post("/news/{news_id}/delete", response_class=HTMLResponse)
+async def delete_news(
+    news_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(security.require_role(["member", "manager"]))
+):
+    """Deletes a news item."""
+    news_to_delete = db.query(models.News).filter(models.News.id == news_id).first()
+    if not news_to_delete:
+        raise HTTPException(status_code=404, detail="News not found")
+
+    # Optional: Check if the user is the owner or a manager
+    if news_to_delete.owner_id != current_user.id and current_user.role != 'manager':
+        raise HTTPException(status_code=403, detail="Not authorized to delete this news")
+
+    db.delete(news_to_delete)
+    db.commit()
+    return RedirectResponse(url="/news", status_code=302)
+
+@api_router.post("/news/{news_id}/edit", response_class=HTMLResponse)
+async def handle_edit_news(
+    news_id: int,
+    title: str = Form(...),
+    summary: str = Form(...),
+    content: str = Form(...),
+    category: str = Form(...),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(security.require_role(["member", "manager"]))
+):
+    """Handles the submission of the news edit form."""
+    news_to_edit = db.query(models.News).filter(models.News.id == news_id).first()
+    if not news_to_edit:
+        raise HTTPException(status_code=404, detail="News not found")
+
+    if news_to_edit.owner_id != current_user.id and current_user.role != 'manager':
+        raise HTTPException(status_code=403, detail="Not authorized to edit this news")
+
+    news_to_edit.title = title
+    news_to_edit.summary = summary
+    news_to_edit.content = content
+    news_to_edit.category = category
+    db.commit()
+
+    return RedirectResponse(url=f"/news/{news_id}", status_code=302)
+
 @api_router.post("/events")
 async def create_event():
     """Placeholder for event creation logic (Admin only)."""
@@ -215,10 +260,36 @@ async def news_list_page(request: Request, db: Session = Depends(get_db)):
 @app.get("/news/{news_id}", response_class=HTMLResponse)
 async def news_detail_page(request: Request, news_id: int, db: Session = Depends(get_db)):
     """Serves the page for a single news article."""
+    user = None
+    try:
+        token = request.cookies.get("access_token")
+        if token:
+            token_value = token.split(" ")[1]
+            user = security.get_current_user(token=token_value, db=db)
+    except Exception:
+        user = None
+
     news_item = db.query(models.News).options(joinedload(models.News.owner)).filter(models.News.id == news_id, models.News.published == True).first()
     if not news_item:
         raise HTTPException(status_code=404, detail="News not found")
-    return templates.TemplateResponse("news_detail.html", {"request": request, "news": news_item})
+    return templates.TemplateResponse("news_detail.html", {"request": request, "news": news_item, "user": user})
+
+@app.get("/news/{news_id}/edit", response_class=HTMLResponse)
+async def edit_news_page(
+    request: Request,
+    news_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(security.require_role(["member", "manager"]))
+):
+    """Serves the page to edit a news article."""
+    news_item = db.query(models.News).filter(models.News.id == news_id).first()
+    if not news_item:
+        raise HTTPException(status_code=404, detail="News not found")
+
+    if news_item.owner_id != current_user.id and current_user.role != 'manager':
+        raise HTTPException(status_code=403, detail="Not authorized to edit this news")
+
+    return templates.TemplateResponse("edit_news.html", {"request": request, "news": news_item})
 
 @app.get("/articles", response_class=HTMLResponse)
 async def articles_list_page(request: Request, db: Session = Depends(get_db)):

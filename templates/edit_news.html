@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}ویرایش خبر: {{ news.title }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h1 class="h3">ویرایش خبر</h1>
+            </div>
+            <div class="card-body">
+                <form action="/api/v1/news/{{ news.id }}/edit" method="post">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">عنوان خبر:</label>
+                        <input type="text" id="title" name="title" class="form-control" value="{{ news.title }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="summary" class="form-label">خلاصه خبر:</label>
+                        <textarea id="summary" name="summary" rows="3" class="form-control" required>{{ news.summary }}</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="category" class="form-label">دسته بندی:</label>
+                        <input type="text" id="category" name="category" class="form-control" value="{{ news.category }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="content" class="form-label">محتوای خبر:</label>
+                        <textarea id="content" name="content" rows="8" class="form-control" required>{{ news.content }}</textarea>
+                    </div>
+                    <div class="d-flex justify-content-end">
+                        <a href="/news/{{ news.id }}" class="btn btn-secondary me-2">انصراف</a>
+                        <button type="submit" class="btn btn-primary">ذخیره تغییرات</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
