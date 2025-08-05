@@ -26,6 +26,23 @@ def seed_database():
         else:
             logger.info("Admin user already exists.")
 
+        # 2. Create Member User
+        member_user = db.query(User).filter(User.username == "member").first()
+        if not member_user:
+            logger.info("Member user not found. Creating one...")
+            member_user = User(
+                username="member",
+                email="member@example.com",
+                hashed_password=get_password_hash("1234"),
+                role="member"
+            )
+            db.add(member_user)
+            db.commit()
+            db.refresh(member_user)
+            logger.info("Member user 'member' created.")
+        else:
+            logger.info("Member user already exists.")
+
         logger.info("Clearing old news and articles...")
         db.query(News).delete()
         db.query(Article).delete()
