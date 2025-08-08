@@ -42,26 +42,32 @@ def create_access_token(user: User, expires_delta: Optional[timedelta] = None):
 
 
 def get_current_user(token: str, db: Session):
-    credentials_exception = HTTPException(
-        status_code=302,
-        detail="Could not validate credentials",
-        headers={"Location": "/login"},
-    )
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
         if username is None:
-            raise credentials_exception
+            return None
 
         user = db.query(User).filter(User.username == username).first()
         if user is None:
-            raise credentials_exception
+            return None
 
         user.token_role = payload.get("role")
         return user
 
     except JWTError:
-        raise credentials_exception
+        return None
+
+async def get_current_user_from_cookie(request: Request, db: Session = Depends(get_db)) -> User | None:
+    """
+    Dependency to get the current user from the access token in the cookie.
+    Returns the user object or None if not authenticated.
+    """
+    token = request.cookies.get("access_token")
+    if not token:
+        return None
+    token_value = token.split(" ")[1] if " " in token else token
+    return get_current_user(token=token_value, db=db)
 
 async def get_current_active_user(request: Request, db: Session = Depends(get_db)):
     token = request.cookies.get("access_token")

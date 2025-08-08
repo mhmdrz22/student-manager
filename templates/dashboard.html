@@ -20,6 +20,11 @@
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="news-tab" data-bs-toggle="tab" data-bs-target="#news" type="button" role="tab">ارسال خبر</button>
                     </li>
+                    {% if user.token_role == 'manager' %}
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="event-tab" data-bs-toggle="tab" data-bs-target="#event" type="button" role="tab">ایجاد رویداد</button>
+                    </li>
+                    {% endif %}
                 </ul>
                 <div class="tab-content pt-3">
                     <div class="tab-pane active" id="article" role="tabpanel">
@@ -42,6 +47,17 @@
                             <button type="submit" class="btn btn-primary">ارسال خبر</button>
                         </form>
                     </div>
+                    {% if user.token_role == 'manager' %}
+                    <div class="tab-pane" id="event" role="tabpanel">
+                        <form action="/api/v1/events" method="post">
+                            <div class="mb-3"><label class="form-label">عنوان رویداد:</label><input type="text" name="title" class="form-control" required></div>
+                            <div class="mb-3"><label class="form-label">توضیحات:</label><textarea name="description" rows="3" class="form-control" required></textarea></div>
+                            <div class="mb-3"><label class="form-label">تاریخ:</label><input type="datetime-local" name="date" class="form-control" required></div>
+                            <div class="mb-3"><label class="form-label">مکان:</label><input type="text" name="location" class="form-control" required></div>
+                            <button type="submit" class="btn btn-primary">ایجاد رویداد</button>
+                        </form>
+                    </div>
+                    {% endif %}
                 </div>
                 {% else %}
                 <p class="text-muted">شما برای ارسال محتوا دسترسی ندارید. برای کسب دسترسی، با مدیر تماس بگیرید.</p>
@@ -92,4 +108,71 @@
         {% endif %}
     </div>
 </div>
+
+<!-- Pending Content Section for Managers -->
+{% if user.token_role == 'manager' %}
+<div class="row mt-4">
+    <!-- Pending Articles -->
+    <div class="col-md-6">
+        {% if pending_articles %}
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                مقالات در انتظار تایید
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    {% for article in pending_articles %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <a href="/articles/{{ article.id }}">{{ article.title }}</a>
+                            <small class="d-block text-muted">ارسال شده توسط: {{ article.owner.username }}</small>
+                        </div>
+                        <div class="btn-group">
+                            <form action="/admin/articles/{{ article.id }}/approve" method="post" style="display: inline;">
+                                <button type="submit" class="btn btn-sm btn-success">تایید</button>
+                            </form>
+                            <form action="/admin/articles/{{ article.id }}/reject" method="post" style="display: inline;">
+                                <button type="submit" class="btn btn-sm btn-danger">رد</button>
+                            </form>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Pending News -->
+    <div class="col-md-6">
+        {% if pending_news %}
+        <div class="card">
+            <div class="card-header bg-info text-dark">
+                اخبار در انتظار تایید
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    {% for news_item in pending_news %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <a href="/news/{{ news_item.id }}">{{ news_item.title }}</a>
+                            <small class="d-block text-muted">ارسال شده توسط: {{ news_item.owner.username }}</small>
+                        </div>
+                        <div class="btn-group">
+                            <form action="/admin/news/{{ news_item.id }}/approve" method="post" style="display: inline;">
+                                <button type="submit" class="btn btn-sm btn-success">تایید</button>
+                            </form>
+                            <form action="/admin/news/{{ news_item.id }}/reject" method="post" style="display: inline;">
+                                <button type="submit" class="btn btn-sm btn-danger">رد</button>
+                            </form>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
 {% endblock %}
