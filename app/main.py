@@ -21,11 +21,19 @@ app = FastAPI(
     version="0.1.0"
 )
 
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    if exc.status_code == 401:
+        return RedirectResponse(url="/login", status_code=302)
+    # Default behavior for other HTTPExceptions
+    return RedirectResponse(url="/", status_code=302)
+
 
 # This is needed to serve HTML templates
 templates = Jinja2Templates(directory="templates")
 
-from create_admin import seed_database
+# The seed_database function is no longer called on startup
+# from create_admin import seed_database
 
 from .database import Base
 
@@ -33,13 +41,15 @@ from .database import Base
 async def startup_event():
     # Create required directories
     os.makedirs("uploads", exist_ok=True)
+    os.makedirs("static", exist_ok=True) # Ensure static directory exists
 
-    # Reset and create DB and tables
-    Base.metadata.drop_all(bind=engine)
+    # Create DB and tables if they don't exist
     create_db_and_tables()
-    # Seed the database with admin user and sample data
-    seed_database()
-    # Then mount static files
+
+    # Seeding should be done via a separate script, not on startup.
+    # The `create_admin.py` script can be used for initial setup.
+
+    # Mount static files
     app.mount("/static", StaticFiles(directory="static"), name="static")
     app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
@@ -101,6 +111,8 @@ async def login_for_access_token(
     response.set_cookie(key="access_token", value=f"Bearer {access_token}", httponly=True)
     return response
 
+from . import utils
+
 @api_router.post("/articles", response_class=HTMLResponse)
 async def submit_article(
     title: str = Form(...),
@@ -114,21 +126,17 @@ async def submit_article(
     """
     Handles article submission from any logged-in user.
     """
-    # Create uploads directory if it doesn't exist
     upload_dir = "uploads"
-    os.makedirs(upload_dir, exist_ok=True)
 
-    # Save the file
-    file_path = os.path.join(upload_dir, file.filename)
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+    # Save the file with a secure filename
+    file_path = utils.save_upload_file(file, destination=upload_dir)
 
     db_article = models.Article(
         title=title,
         summary=summary,
         content=content,
         image_url=image_url,
-        file_path=file_path,
+        file_path=file_path, # Store the relative path
         owner_id=current_user.id,
         published=False # Set to false, requires manager approval
     )
@@ -220,17 +228,8 @@ from sqlalchemy.orm import joinedload
 # --- Frontend Serving ---
 
 @app.get("/", response_class=HTMLResponse)
-async def read_root(request: Request, db: Session = Depends(get_db)):
+async def read_root(request: Request, db: Session = Depends(get_db), user: models.User = Depends(security.try_get_current_active_user)):
     """Serves the main page and displays the latest news."""
-    user = None
-    try:
-        token = request.cookies.get("access_token")
-        if token:
-            token_value = token.split(" ")[1]
-            user = security.get_current_user(token=token_value, db=db)
-    except Exception:
-        user = None # Fail silently if token is invalid
-
     news_items = db.query(models.News).options(joinedload(models.News.owner)).filter(models.News.published == True).order_by(models.News.created_at.desc()).limit(3).all()
     return templates.TemplateResponse("index.html", {"request": request, "news_list": news_items, "user": user})
 
@@ -258,17 +257,8 @@ async def news_list_page(request: Request, db: Session = Depends(get_db)):
     return templates.TemplateResponse("news_list.html", {"request": request, "news_list": news_items})
 
 @app.get("/news/{news_id}", response_class=HTMLResponse)
-async def news_detail_page(request: Request, news_id: int, db: Session = Depends(get_db)):
+async def news_detail_page(request: Request, news_id: int, db: Session = Depends(get_db), user: models.User = Depends(security.try_get_current_active_user)):
     """Serves the page for a single news article."""
-    user = None
-    try:
-        token = request.cookies.get("access_token")
-        if token:
-            token_value = token.split(" ")[1]
-            user = security.get_current_user(token=token_value, db=db)
-    except Exception:
-        user = None
-
     news_item = db.query(models.News).options(joinedload(models.News.owner)).filter(models.News.id == news_id, models.News.published == True).first()
     if not news_item:
         raise HTTPException(status_code=404, detail="News not found")
@@ -351,34 +341,24 @@ def approve_article(
     return RedirectResponse(url="/dashboard", status_code=302)
 
 @app.get("/dashboard", response_class=HTMLResponse)
-async def dashboard_page(request: Request, db: Session = Depends(get_db)):
+async def dashboard_page(request: Request, db: Session = Depends(get_db), user: models.User = Depends(security.get_current_active_user)):
     """
     Serves the user dashboard page.
-    This route is now protected.
-    If the user is a manager, it also fetches the list of all users.
+    This route is now protected by the get_current_active_user dependency.
+    If the user is a manager, it also fetches the list of all users and pending articles.
     """
-    try:
-        token = request.cookies.get("access_token")
-        token_value = token.split(" ")[1] if token else None
-        if not token_value:
-            return RedirectResponse(url="/login", status_code=302)
+    user_list = []
+    pending_articles = []
+    if user.role == 'manager':
+        user_list = db.query(models.User).all()
+        pending_articles = db.query(models.Article).filter(models.Article.published == False).all()
 
-        user = security.get_current_user(token=token_value, db=db)
-
-        user_list = []
-        pending_articles = []
-        if user.token_role == 'manager':
-            user_list = db.query(models.User).all()
-            pending_articles = db.query(models.Article).filter(models.Article.published == False).all()
-
-        return templates.TemplateResponse("dashboard.html", {
-            "request": request,
-            "user": user,
-            "user_list": user_list,
-            "pending_articles": pending_articles
-        })
-    except Exception:
-        return RedirectResponse(url="/login", status_code=302)
+    return templates.TemplateResponse("dashboard.html", {
+        "request": request,
+        "user": user,
+        "user_list": user_list,
+        "pending_articles": pending_articles
+    })
 
 
 # The uvicorn command should be used to run the app, for example:

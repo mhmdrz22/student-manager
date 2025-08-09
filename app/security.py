@@ -8,11 +8,12 @@ from sqlalchemy.orm import Session
 
 from .models import User
 from .database import get_db
+from .config import settings
 
-# JWT Configuration
-SECRET_KEY = "a-very-secret-key-that-should-be-in-an-env-file"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+# JWT Configuration is loaded from settings
+SECRET_KEY = settings.SECRET_KEY
+ALGORITHM = settings.ALGORITHM
+ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -41,45 +42,63 @@ def create_access_token(user: User, expires_delta: Optional[timedelta] = None):
     return encoded_jwt
 
 
-def get_current_user(token: str, db: Session):
-    credentials_exception = HTTPException(
-        status_code=302,
-        detail="Could not validate credentials",
-        headers={"Location": "/login"},
-    )
+def get_current_user(token: str, db: Session) -> Optional[User]:
+    """
+    Decodes the JWT token and retrieves the user from the database.
+    Returns the user object or None if validation fails.
+    """
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
         if username is None:
-            raise credentials_exception
+            return None
 
         user = db.query(User).filter(User.username == username).first()
-        if user is None:
-            raise credentials_exception
-
-        user.token_role = payload.get("role")
+        # The role from the token should be validated against the DB role if needed,
+        # but for now, we trust the token if the user exists.
         return user
 
     except JWTError:
-        raise credentials_exception
+        return None
 
-async def get_current_active_user(request: Request, db: Session = Depends(get_db)):
+async def get_current_active_user(request: Request, db: Session = Depends(get_db)) -> User:
+    """
+    Dependency to get the current authenticated user.
+    Raises an HTTPException if the user is not authenticated.
+    """
     token = request.cookies.get("access_token")
     if not token:
-        raise HTTPException(status_code=302, detail="Not authenticated", headers={"Location": "/login"})
+        raise HTTPException(status_code=401, detail="Not authenticated")
 
-    token_value = token.split(" ")[1] if token else None
-    if not token_value:
-        raise HTTPException(status_code=302, detail="Not authenticated", headers={"Location": "/login"})
+    # The token from the browser cookie is expected to be in the format "Bearer <token>"
+    token_value = token.split(" ")[1] if " " in token else token
 
-    return get_current_user(token=token_value, db=db)
+    user = get_current_user(token=token_value, db=db)
+    if not user:
+        raise HTTPException(status_code=401, detail="Could not validate credentials")
+
+    return user
+
+async def try_get_current_active_user(request: Request, db: Session = Depends(get_db)) -> Optional[User]:
+    """
+    Dependency to optionally get the current authenticated user.
+    Returns the user object or None if not authenticated.
+    """
+    token = request.cookies.get("access_token")
+    if not token:
+        return None
+
+    token_value = token.split(" ")[1] if " " in token else token
+
+    user = get_current_user(token=token_value, db=db)
+    return user
 
 def require_role(allowed_roles: list[str]):
     """
     Dependency factory that returns a dependency that checks for user role.
     """
     async def role_checker(current_user: User = Depends(get_current_active_user)):
-        if current_user.token_role not in allowed_roles:
+        if current_user.role not in allowed_roles:
             raise HTTPException(
                 status_code=403,
                 detail="You do not have permission to perform this action."
