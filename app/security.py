@@ -47,6 +47,7 @@ def get_current_user(token: str, db: Session) -> Optional[User]:
     Decodes the JWT token and retrieves the user from the database.
     Returns the user object or None if validation fails.
     """
+
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
@@ -54,12 +55,15 @@ def get_current_user(token: str, db: Session) -> Optional[User]:
             return None
 
         user = db.query(User).filter(User.username == username).first()
+
         # The role from the token should be validated against the DB role if needed,
         # but for now, we trust the token if the user exists.
+
         return user
 
     except JWTError:
         return None
+
 
 async def get_current_active_user(request: Request, db: Session = Depends(get_db)) -> User:
     """

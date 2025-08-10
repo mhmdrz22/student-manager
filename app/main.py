@@ -61,6 +61,7 @@ api_router = APIRouter(prefix="/api/v1")
 
 @api_router.post("/register", response_class=HTMLResponse)
 def register_user(
+    request: Request,
     username: str = Form(...),
     email: str = Form(...),
     password: str = Form(...),
@@ -72,11 +73,11 @@ def register_user(
     """
     db_user = db.query(models.User).filter(models.User.username == username).first()
     if db_user:
-        raise HTTPException(status_code=400, detail="Username already registered")
+        return templates.TemplateResponse("register.html", {"request": request, "error": "Username already registered"})
 
     db_user_email = db.query(models.User).filter(models.User.email == email).first()
     if db_user_email:
-        raise HTTPException(status_code=400, detail="Email already registered")
+        return templates.TemplateResponse("register.html", {"request": request, "error": "Email already registered"})
 
     hashed_password = security.get_password_hash(password)
     db_user = models.User(
@@ -136,9 +137,11 @@ async def submit_article(
         summary=summary,
         content=content,
         image_url=image_url,
+
         file_path=file_path, # Store the relative path
         owner_id=current_user.id,
         published=False # Set to false, requires manager approval
+
     )
     db.add(db_article)
     db.commit()
@@ -162,13 +165,13 @@ async def submit_news(
         summary=summary,
         content=content,
         category=category,
-        owner_id=current_user.id,
-        published=True # Or based on admin approval
+        owner_id=current_user.id
     )
     db.add(db_news)
     db.commit()
     db.refresh(db_news)
     return RedirectResponse(url="/dashboard", status_code=302)
+
 
 @api_router.post("/news/{news_id}/delete", response_class=HTMLResponse)
 async def delete_news(
@@ -221,6 +224,7 @@ async def create_event():
     return {"message": "Event creation endpoint"}
 
 
+
 app.include_router(api_router)
 
 from sqlalchemy.orm import joinedload
@@ -228,9 +232,11 @@ from sqlalchemy.orm import joinedload
 # --- Frontend Serving ---
 
 @app.get("/", response_class=HTMLResponse)
+
 async def read_root(request: Request, db: Session = Depends(get_db), user: models.User = Depends(security.try_get_current_active_user)):
     """Serves the main page and displays the latest news."""
     news_items = db.query(models.News).options(joinedload(models.News.owner)).filter(models.News.published == True).order_by(models.News.created_at.desc()).limit(3).all()
+
     return templates.TemplateResponse("index.html", {"request": request, "news_list": news_items, "user": user})
 
 @app.get("/register", response_class=HTMLResponse)
@@ -243,8 +249,10 @@ async def login_page(request: Request):
     """Serves the login page."""
     return templates.TemplateResponse("login.html", {"request": request})
 
+from fastapi import Response
+
 @app.get("/logout")
-async def logout(response: HTMLResponse):
+async def logout(response: Response):
     """Logs the user out by clearing the access token cookie."""
     response = RedirectResponse(url="/", status_code=302)
     response.delete_cookie(key="access_token")
@@ -253,13 +261,13 @@ async def logout(response: HTMLResponse):
 @app.get("/news", response_class=HTMLResponse)
 async def news_list_page(request: Request, db: Session = Depends(get_db)):
     """Serves the page with a list of all news articles."""
-    news_items = db.query(models.News).options(joinedload(models.News.owner)).filter(models.News.published == True).order_by(models.News.created_at.desc()).all()
+    news_items = db.query(models.News).options(joinedload(models.News.owner)).filter(models.News.status == "approved").order_by(models.News.created_at.desc()).all()
     return templates.TemplateResponse("news_list.html", {"request": request, "news_list": news_items})
 
 @app.get("/news/{news_id}", response_class=HTMLResponse)
 async def news_detail_page(request: Request, news_id: int, db: Session = Depends(get_db), user: models.User = Depends(security.try_get_current_active_user)):
     """Serves the page for a single news article."""
-    news_item = db.query(models.News).options(joinedload(models.News.owner)).filter(models.News.id == news_id, models.News.published == True).first()
+    news_item = db.query(models.News).options(joinedload(models.News.owner)).filter(models.News.id == news_id, models.News.status == "approved").first()
     if not news_item:
         raise HTTPException(status_code=404, detail="News not found")
     return templates.TemplateResponse("news_detail.html", {"request": request, "news": news_item, "user": user})
@@ -284,16 +292,30 @@ async def edit_news_page(
 @app.get("/articles", response_class=HTMLResponse)
 async def articles_list_page(request: Request, db: Session = Depends(get_db)):
     """Serves the page with a list of all articles."""
-    articles = db.query(models.Article).options(joinedload(models.Article.owner)).filter(models.Article.published == True).order_by(models.Article.created_at.desc()).all()
+    articles = db.query(models.Article).options(joinedload(models.Article.owner)).filter(models.Article.status == "approved").order_by(models.Article.created_at.desc()).all()
     return templates.TemplateResponse("articles_list.html", {"request": request, "articles_list": articles})
 
 @app.get("/articles/{article_id}", response_class=HTMLResponse)
 async def article_detail_page(request: Request, article_id: int, db: Session = Depends(get_db)):
     """Serves the page for a single article."""
-    article = db.query(models.Article).options(joinedload(models.Article.owner)).filter(models.Article.id == article_id, models.Article.published == True).first()
+    article = db.query(models.Article).options(joinedload(models.Article.owner)).filter(models.Article.id == article_id, models.Article.status == "approved").first()
     if not article:
         raise HTTPException(status_code=404, detail="Article not found")
     return templates.TemplateResponse("article_detail.html", {"request": request, "article": article})
+
+@app.get("/events", response_class=HTMLResponse)
+async def events_list_page(request: Request, db: Session = Depends(get_db)):
+    """Serves the page with a list of all events."""
+    events = db.query(models.Event).order_by(models.Event.date.desc()).all()
+    return templates.TemplateResponse("events_list.html", {"request": request, "events_list": events})
+
+@app.get("/events/{event_id}", response_class=HTMLResponse)
+async def event_detail_page(request: Request, event_id: int, db: Session = Depends(get_db)):
+    """Serves the page for a single event."""
+    event = db.query(models.Event).filter(models.Event.id == event_id).first()
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    return templates.TemplateResponse("event_detail.html", {"request": request, "event": event})
 
 # --- Admin/Manager Specific Endpoints ---
 
@@ -325,23 +347,24 @@ def update_user_role(
     db.commit()
     return RedirectResponse(url="/dashboard", status_code=302)
 
+
 @api_router.post("/articles/{article_id}/approve", response_class=HTMLResponse)
 def approve_article(
+
     article_id: int,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(security.require_role(["manager"]))
 ):
+
     """Approves an article, setting its 'published' status to True."""
     article_to_approve = db.query(models.Article).filter(models.Article.id == article_id).first()
     if not article_to_approve:
         raise HTTPException(status_code=404, detail="Article not found")
 
     article_to_approve.published = True
-    db.commit()
-    return RedirectResponse(url="/dashboard", status_code=302)
 
-@app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard_page(request: Request, db: Session = Depends(get_db), user: models.User = Depends(security.get_current_active_user)):
+
     """
     Serves the user dashboard page.
     This route is now protected by the get_current_active_user dependency.
@@ -349,15 +372,18 @@ async def dashboard_page(request: Request, db: Session = Depends(get_db), user: 
     """
     user_list = []
     pending_articles = []
+
     if user.role == 'manager':
         user_list = db.query(models.User).all()
         pending_articles = db.query(models.Article).filter(models.Article.published == False).all()
+
 
     return templates.TemplateResponse("dashboard.html", {
         "request": request,
         "user": user,
         "user_list": user_list,
         "pending_articles": pending_articles
+
     })
 
 

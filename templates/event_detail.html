@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}{{ event.title }}{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <h1 class="card-title">{{ event.title }}</h1>
+        <h6 class="card-subtitle mb-2 text-muted">تاریخ: {{ event.date.strftime('%Y-%m-%d %H:%M') }}</h6>
+        <h6 class="card-subtitle mb-2 text-muted">مکان: {{ event.location }}</h6>
+        <hr>
+        <p class="card-text">{{ event.description }}</p>
+    </div>
+</div>
+<a href="/events" class="btn btn-primary mt-3">بازگشت به لیست رویدادها</a>
+{% endblock %}
