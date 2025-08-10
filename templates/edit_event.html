@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Event{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Edit Event: {{ event.title }}</h2>
+    <hr>
+    <form action="/api/v1/events/{{ event.id }}/edit" method="post" class="mt-4">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="form-group mb-3">
+                    <label for="title" class="form-label">Event Title</label>
+                    <input type="text" class="form-control" id="title" name="title" value="{{ event.title }}" required>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="summary" class="form-label">Summary</label>
+                    <textarea class="form-control" id="summary" name="summary" rows="2" required>{{ event.summary }}</textarea>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="description" class="form-label">Full Description</label>
+                    <textarea class="form-control" id="description" name="description" rows="5" required>{{ event.description }}</textarea>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group mb-3">
+                    <label for="category" class="form-label">Category</label>
+                    <select class="form-select" id="category" name="category" required>
+                        <option value="Internal Meeting" {% if event.category == 'Internal Meeting' %}selected{% endif %}>Internal Meeting</option>
+                        <option value="Workshop" {% if event.category == 'Workshop' %}selected{% endif %}>Workshop</option>
+                        <option value="Competition" {% if event.category == 'Competition' %}selected{% endif %}>Competition/Hackathon</option>
+                        <option value="Seminar" {% if event.category == 'Seminar' %}selected{% endif %}>Lecture/Seminar</option>
+                        <option value="Site Visit" {% if event.category == 'Site Visit' %}selected{% endif %}>Site Visit</option>
+                    </select>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="location" class="form-label">Location</label>
+                    <input type="text" class="form-control" id="location" name="location" value="{{ event.location }}" placeholder="e.g., Online, Main Hall" required>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="image_url" class="form-label">Image URL</label>
+                    <input type="url" class="form-control" id="image_url" name="image_url" value="{{ event.image_url or '' }}" placeholder="https://example.com/poster.jpg">
+                </div>
+                <div class="form-group mb-3">
+                    <label for="capacity" class="form-label">Capacity</label>
+                    <input type="number" class="form-control" id="capacity" name="capacity" value="{{ event.capacity or '' }}" min="0">
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="form-group mb-3">
+                    <label for="start_time" class="form-label">Start Time</label>
+                    <input type="datetime-local" class="form-control" id="start_time" name="start_time" value="{{ event.start_time.strftime('%Y-%m-%dT%H:%M') if event.start_time else '' }}" required>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group mb-3">
+                    <label for="end_time" class="form-label">End Time</label>
+                    <input type="datetime-local" class="form-control" id="end_time" name="end_time" value="{{ event.end_time.strftime('%Y-%m-%dT%H:%M') if event.end_time else '' }}">
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group mb-3">
+                    <label for="registration_deadline" class="form-label">Registration Deadline</label>
+                    <input type="datetime-local" class="form-control" id="registration_deadline" name="registration_deadline" value="{{ event.registration_deadline.strftime('%Y-%m-%dT%H:%M') if event.registration_deadline else '' }}">
+                </div>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary mt-3">Save Changes</button>
+        <a href="/events/{{ event.id }}" class="btn btn-secondary mt-3">Cancel</a>
+    </form>
+</div>
+{% endblock %}
