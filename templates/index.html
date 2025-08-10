@@ -9,6 +9,9 @@
     {% for news in news_list %}
     <div class="col-md-4 mb-4">
         <div class="card h-100">
+            {% if news.image_url %}
+            <img src="{{ news.image_url }}" class="card-img-top" alt="{{ news.title }}" style="height: 200px; object-fit: cover;">
+            {% endif %}
             <div class="card-body">
                 <h5 class="card-title">{{ news.title }}</h5>
                 <p class="card-text">{{ news.summary }}</p>
