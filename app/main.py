@@ -334,6 +334,78 @@ async def delete_event(
     return RedirectResponse(url="/events", status_code=302)
 
 
+@api_router.post("/news/{news_id}/approve", response_class=HTMLResponse)
+def approve_news(news_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(security.require_role(["manager"]))):
+    """Approves a news item, setting its 'status' to 'approved'."""
+    news_to_approve = db.query(models.News).filter(models.News.id == news_id).first()
+    if not news_to_approve:
+        raise HTTPException(status_code=404, detail="News not found")
+
+    news_to_approve.status = "approved"
+    db.commit()
+    return RedirectResponse(url="/dashboard", status_code=302)
+
+
+@api_router.post("/news/{news_id}/reject", response_class=HTMLResponse)
+def reject_news(news_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(security.require_role(["manager"]))):
+    """Rejects a news item by deleting it."""
+    news_to_reject = db.query(models.News).filter(models.News.id == news_id).first()
+    if not news_to_reject:
+        raise HTTPException(status_code=404, detail="News not found")
+
+    db.delete(news_to_reject)
+    db.commit()
+    return RedirectResponse(url="/dashboard", status_code=302)
+
+
+@api_router.post("/articles/{article_id}/approve", response_class=HTMLResponse)
+def approve_article(article_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(security.require_role(["manager"]))):
+    """Approves an article, setting its 'status' to 'approved'."""
+    article_to_approve = db.query(models.Article).filter(models.Article.id == article_id).first()
+    if not article_to_approve:
+        raise HTTPException(status_code=404, detail="Article not found")
+
+    article_to_approve.status = "approved"
+    db.commit()
+    return RedirectResponse(url="/dashboard", status_code=302)
+
+
+@api_router.post("/articles/{article_id}/reject", response_class=HTMLResponse)
+def reject_article(article_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(security.require_role(["manager"]))):
+    """Rejects an article by deleting it."""
+    article_to_reject = db.query(models.Article).filter(models.Article.id == article_id).first()
+    if not article_to_reject:
+        raise HTTPException(status_code=404, detail="Article not found")
+
+    db.delete(article_to_reject)
+    db.commit()
+    return RedirectResponse(url="/dashboard", status_code=302)
+
+
+@api_router.post("/events/{event_id}/approve", response_class=HTMLResponse)
+def approve_event(event_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(security.require_role(["manager"]))):
+    """Approves an event, setting its 'status' to 'approved'."""
+    event_to_approve = db.query(models.Event).filter(models.Event.id == event_id).first()
+    if not event_to_approve:
+        raise HTTPException(status_code=404, detail="Event not found")
+
+    event_to_approve.status = "approved"
+    db.commit()
+    return RedirectResponse(url="/dashboard", status_code=302)
+
+
+@api_router.post("/events/{event_id}/reject", response_class=HTMLResponse)
+def reject_event(event_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(security.require_role(["manager"]))):
+    """Rejects an event by deleting it."""
+    event_to_reject = db.query(models.Event).filter(models.Event.id == event_id).first()
+    if not event_to_reject:
+        raise HTTPException(status_code=404, detail="Event not found")
+
+    db.delete(event_to_reject)
+    db.commit()
+    return RedirectResponse(url="/dashboard", status_code=302)
+
+
 app.include_router(api_router)
 
 from sqlalchemy.orm import joinedload
@@ -485,78 +557,6 @@ def update_user_role(
         raise HTTPException(status_code=404, detail="User not found.")
 
     user_to_update.role = new_role
-    db.commit()
-    return RedirectResponse(url="/dashboard", status_code=302)
-
-
-@api_router.post("/news/{news_id}/approve", response_class=HTMLResponse)
-def approve_news(news_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(security.require_role(["manager"]))):
-    """Approves a news item, setting its 'status' to 'approved'."""
-    news_to_approve = db.query(models.News).filter(models.News.id == news_id).first()
-    if not news_to_approve:
-        raise HTTPException(status_code=404, detail="News not found")
-
-    news_to_approve.status = "approved"
-    db.commit()
-    return RedirectResponse(url="/dashboard", status_code=302)
-
-
-@api_router.post("/news/{news_id}/reject", response_class=HTMLResponse)
-def reject_news(news_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(security.require_role(["manager"]))):
-    """Rejects a news item by deleting it."""
-    news_to_reject = db.query(models.News).filter(models.News.id == news_id).first()
-    if not news_to_reject:
-        raise HTTPException(status_code=404, detail="News not found")
-
-    db.delete(news_to_reject)
-    db.commit()
-    return RedirectResponse(url="/dashboard", status_code=302)
-
-
-@api_router.post("/articles/{article_id}/approve", response_class=HTMLResponse)
-def approve_article(article_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(security.require_role(["manager"]))):
-    """Approves an article, setting its 'status' to 'approved'."""
-    article_to_approve = db.query(models.Article).filter(models.Article.id == article_id).first()
-    if not article_to_approve:
-        raise HTTPException(status_code=404, detail="Article not found")
-
-    article_to_approve.status = "approved"
-    db.commit()
-    return RedirectResponse(url="/dashboard", status_code=302)
-
-
-@api_router.post("/articles/{article_id}/reject", response_class=HTMLResponse)
-def reject_article(article_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(security.require_role(["manager"]))):
-    """Rejects an article by deleting it."""
-    article_to_reject = db.query(models.Article).filter(models.Article.id == article_id).first()
-    if not article_to_reject:
-        raise HTTPException(status_code=404, detail="Article not found")
-
-    db.delete(article_to_reject)
-    db.commit()
-    return RedirectResponse(url="/dashboard", status_code=302)
-
-
-@api_router.post("/events/{event_id}/approve", response_class=HTMLResponse)
-def approve_event(event_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(security.require_role(["manager"]))):
-    """Approves an event, setting its 'status' to 'approved'."""
-    event_to_approve = db.query(models.Event).filter(models.Event.id == event_id).first()
-    if not event_to_approve:
-        raise HTTPException(status_code=404, detail="Event not found")
-
-    event_to_approve.status = "approved"
-    db.commit()
-    return RedirectResponse(url="/dashboard", status_code=302)
-
-
-@api_router.post("/events/{event_id}/reject", response_class=HTMLResponse)
-def reject_event(event_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(security.require_role(["manager"]))):
-    """Rejects an event by deleting it."""
-    event_to_reject = db.query(models.Event).filter(models.Event.id == event_id).first()
-    if not event_to_reject:
-        raise HTTPException(status_code=404, detail="Event not found")
-
-    db.delete(event_to_reject)
     db.commit()
     return RedirectResponse(url="/dashboard", status_code=302)
 
