@@ -122,6 +122,9 @@
                             <form action="/api/v1/articles/{{ article.id }}/approve" method="post" style="display: inline;">
                                 <button type="submit" class="btn btn-sm btn-success">تایید</button>
                             </form>
+                            <form action="/api/v1/articles/{{ article.id }}/reject" method="post" style="display: inline;" onsubmit="return confirm('آیا از رد این مورد مطمئن هستید؟');">
+                                <button type="submit" class="btn btn-sm btn-danger">رد</button>
+                            </form>
                         </div>
                     </li>
                     {% endfor %}
@@ -150,6 +153,9 @@
                             <form action="/api/v1/news/{{ news_item.id }}/approve" method="post" style="display: inline;">
                                 <button type="submit" class="btn btn-sm btn-success">تایید</button>
                             </form>
+                            <form action="/api/v1/news/{{ news_item.id }}/reject" method="post" style="display: inline;" onsubmit="return confirm('آیا از رد این مورد مطمئن هستید؟');">
+                                <button type="submit" class="btn btn-sm btn-danger">رد</button>
+                            </form>
                         </div>
                     </li>
                     {% endfor %}
@@ -177,6 +183,9 @@
                         <div class="btn-group">
                             <form action="/api/v1/events/{{ event.id }}/approve" method="post" style="display: inline;">
                                 <button type="submit" class="btn btn-sm btn-success">تایید</button>
+                            </form>
+                            <form action="/api/v1/events/{{ event.id }}/reject" method="post" style="display: inline;" onsubmit="return confirm('آیا از رد این مورد مطمئن هستید؟');">
+                                <button type="submit" class="btn btn-sm btn-danger">رد</button>
                             </form>
                         </div>
                     </li>
