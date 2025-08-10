@@ -21,19 +21,35 @@ app = FastAPI(
     version="0.1.0"
 )
 
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    if exc.status_code == 401:
+        return RedirectResponse(url="/login", status_code=302)
+    # Default behavior for other HTTPExceptions
+    return RedirectResponse(url="/", status_code=302)
+
 
 # This is needed to serve HTML templates
 templates = Jinja2Templates(directory="templates")
 
-from create_admin import seed_database
+# The seed_database function is no longer called on startup
+# from create_admin import seed_database
+
+from .database import Base
 
 @app.on_event("startup")
 async def startup_event():
-    # Create DB and tables first
+    # Create required directories
+    os.makedirs("uploads", exist_ok=True)
+    os.makedirs("static", exist_ok=True) # Ensure static directory exists
+
+    # Create DB and tables if they don't exist
     create_db_and_tables()
-    # Seed the database with admin user and sample data
-    seed_database()
-    # Then mount static files
+
+    # Seeding should be done via a separate script, not on startup.
+    # The `create_admin.py` script can be used for initial setup.
+
+    # Mount static files
     app.mount("/static", StaticFiles(directory="static"), name="static")
     app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
@@ -96,6 +112,8 @@ async def login_for_access_token(
     response.set_cookie(key="access_token", value=f"Bearer {access_token}", httponly=True)
     return response
 
+from . import utils
+
 @api_router.post("/articles", response_class=HTMLResponse)
 async def submit_article(
     title: str = Form(...),
@@ -104,27 +122,26 @@ async def submit_article(
     image_url: str = Form(None),
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(security.require_role(["member", "manager"]))
+    current_user: models.User = Depends(security.get_current_active_user)
 ):
     """
-    Handles article submission from a logged-in user with member or manager role.
+    Handles article submission from any logged-in user.
     """
-    # Create uploads directory if it doesn't exist
     upload_dir = "uploads"
-    os.makedirs(upload_dir, exist_ok=True)
 
-    # Save the file
-    file_path = os.path.join(upload_dir, file.filename)
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+    # Save the file with a secure filename
+    file_path = utils.save_upload_file(file, destination=upload_dir)
 
     db_article = models.Article(
         title=title,
         summary=summary,
         content=content,
         image_url=image_url,
-        file_path=file_path,
-        owner_id=current_user.id
+
+        file_path=file_path, # Store the relative path
+        owner_id=current_user.id,
+        published=False # Set to false, requires manager approval
+
     )
     db.add(db_article)
     db.commit()
@@ -155,27 +172,57 @@ async def submit_news(
     db.refresh(db_news)
     return RedirectResponse(url="/dashboard", status_code=302)
 
-@api_router.post("/events", response_class=RedirectResponse)
-async def create_event(
-    title: str = Form(...),
-    description: str = Form(...),
-    date: str = Form(...),
-    location: str = Form(...),
+
+@api_router.post("/news/{news_id}/delete", response_class=HTMLResponse)
+async def delete_news(
+    news_id: int,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(security.require_role(["manager"]))
+    current_user: models.User = Depends(security.require_role(["member", "manager"]))
 ):
-    """Handles event creation from a form (Admin only)."""
-    db_event = models.Event(
-        title=title,
-        description=description,
-        date=date,
-        location=location,
-        owner_id=current_user.id
-    )
-    db.add(db_event)
+    """Deletes a news item."""
+    news_to_delete = db.query(models.News).filter(models.News.id == news_id).first()
+    if not news_to_delete:
+        raise HTTPException(status_code=404, detail="News not found")
+
+    # Optional: Check if the user is the owner or a manager
+    if news_to_delete.owner_id != current_user.id and current_user.role != 'manager':
+        raise HTTPException(status_code=403, detail="Not authorized to delete this news")
+
+    db.delete(news_to_delete)
     db.commit()
-    db.refresh(db_event)
-    return RedirectResponse(url="/dashboard", status_code=302)
+    return RedirectResponse(url="/news", status_code=302)
+
+@api_router.post("/news/{news_id}/edit", response_class=HTMLResponse)
+async def handle_edit_news(
+    news_id: int,
+    title: str = Form(...),
+    summary: str = Form(...),
+    content: str = Form(...),
+    category: str = Form(...),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(security.require_role(["member", "manager"]))
+):
+    """Handles the submission of the news edit form."""
+    news_to_edit = db.query(models.News).filter(models.News.id == news_id).first()
+    if not news_to_edit:
+        raise HTTPException(status_code=404, detail="News not found")
+
+    if news_to_edit.owner_id != current_user.id and current_user.role != 'manager':
+        raise HTTPException(status_code=403, detail="Not authorized to edit this news")
+
+    news_to_edit.title = title
+    news_to_edit.summary = summary
+    news_to_edit.content = content
+    news_to_edit.category = category
+    db.commit()
+
+    return RedirectResponse(url=f"/news/{news_id}", status_code=302)
+
+@api_router.post("/events")
+async def create_event():
+    """Placeholder for event creation logic (Admin only)."""
+    return {"message": "Event creation endpoint"}
+
 
 
 app.include_router(api_router)
@@ -185,9 +232,11 @@ from sqlalchemy.orm import joinedload
 # --- Frontend Serving ---
 
 @app.get("/", response_class=HTMLResponse)
-async def read_root(request: Request, db: Session = Depends(get_db), user: models.User = Depends(security.get_current_user_from_cookie)):
+
+async def read_root(request: Request, db: Session = Depends(get_db), user: models.User = Depends(security.try_get_current_active_user)):
     """Serves the main page and displays the latest news."""
-    news_items = db.query(models.News).options(joinedload(models.News.owner)).filter(models.News.status == "approved").order_by(models.News.created_at.desc()).limit(3).all()
+    news_items = db.query(models.News).options(joinedload(models.News.owner)).filter(models.News.published == True).order_by(models.News.created_at.desc()).limit(3).all()
+
     return templates.TemplateResponse("index.html", {"request": request, "news_list": news_items, "user": user})
 
 @app.get("/register", response_class=HTMLResponse)
@@ -216,12 +265,29 @@ async def news_list_page(request: Request, db: Session = Depends(get_db)):
     return templates.TemplateResponse("news_list.html", {"request": request, "news_list": news_items})
 
 @app.get("/news/{news_id}", response_class=HTMLResponse)
-async def news_detail_page(request: Request, news_id: int, db: Session = Depends(get_db)):
+async def news_detail_page(request: Request, news_id: int, db: Session = Depends(get_db), user: models.User = Depends(security.try_get_current_active_user)):
     """Serves the page for a single news article."""
     news_item = db.query(models.News).options(joinedload(models.News.owner)).filter(models.News.id == news_id, models.News.status == "approved").first()
     if not news_item:
         raise HTTPException(status_code=404, detail="News not found")
-    return templates.TemplateResponse("news_detail.html", {"request": request, "news": news_item})
+    return templates.TemplateResponse("news_detail.html", {"request": request, "news": news_item, "user": user})
+
+@app.get("/news/{news_id}/edit", response_class=HTMLResponse)
+async def edit_news_page(
+    request: Request,
+    news_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(security.require_role(["member", "manager"]))
+):
+    """Serves the page to edit a news article."""
+    news_item = db.query(models.News).filter(models.News.id == news_id).first()
+    if not news_item:
+        raise HTTPException(status_code=404, detail="News not found")
+
+    if news_item.owner_id != current_user.id and current_user.role != 'manager':
+        raise HTTPException(status_code=403, detail="Not authorized to edit this news")
+
+    return templates.TemplateResponse("edit_news.html", {"request": request, "news": news_item})
 
 @app.get("/articles", response_class=HTMLResponse)
 async def articles_list_page(request: Request, db: Session = Depends(get_db)):
@@ -281,83 +347,43 @@ def update_user_role(
     db.commit()
     return RedirectResponse(url="/dashboard", status_code=302)
 
-@app.post("/admin/articles/{article_id}/approve", response_class=RedirectResponse)
-async def approve_article(
+
+@api_router.post("/articles/{article_id}/approve", response_class=HTMLResponse)
+def approve_article(
+
     article_id: int,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(security.require_role(["manager"]))
 ):
-    article = db.query(models.Article).filter(models.Article.id == article_id).first()
-    if not article:
+
+    """Approves an article, setting its 'published' status to True."""
+    article_to_approve = db.query(models.Article).filter(models.Article.id == article_id).first()
+    if not article_to_approve:
         raise HTTPException(status_code=404, detail="Article not found")
-    article.status = "approved"
-    db.commit()
-    return RedirectResponse(url="/dashboard", status_code=302)
 
-@app.post("/admin/articles/{article_id}/reject", response_class=RedirectResponse)
-async def reject_article(
-    article_id: int,
-    db: Session = Depends(get_db),
-    current_user: models.User = Depends(security.require_role(["manager"]))
-):
-    article = db.query(models.Article).filter(models.Article.id == article_id).first()
-    if not article:
-        raise HTTPException(status_code=404, detail="Article not found")
-    article.status = "rejected"
-    db.commit()
-    return RedirectResponse(url="/dashboard", status_code=302)
+    article_to_approve.published = True
 
-@app.post("/admin/news/{news_id}/approve", response_class=RedirectResponse)
-async def approve_news(
-    news_id: int,
-    db: Session = Depends(get_db),
-    current_user: models.User = Depends(security.require_role(["manager"]))
-):
-    news_item = db.query(models.News).filter(models.News.id == news_id).first()
-    if not news_item:
-        raise HTTPException(status_code=404, detail="News not found")
-    news_item.status = "approved"
-    db.commit()
-    return RedirectResponse(url="/dashboard", status_code=302)
+async def dashboard_page(request: Request, db: Session = Depends(get_db), user: models.User = Depends(security.get_current_active_user)):
 
-@app.post("/admin/news/{news_id}/reject", response_class=RedirectResponse)
-async def reject_news(
-    news_id: int,
-    db: Session = Depends(get_db),
-    current_user: models.User = Depends(security.require_role(["manager"]))
-):
-    news_item = db.query(models.News).filter(models.News.id == news_id).first()
-    if not news_item:
-        raise HTTPException(status_code=404, detail="News not found")
-    news_item.status = "rejected"
-    db.commit()
-    return RedirectResponse(url="/dashboard", status_code=302)
-
-@app.get("/dashboard", response_class=HTMLResponse)
-async def dashboard_page(
-    request: Request,
-    db: Session = Depends(get_db),
-    user: models.User = Depends(security.get_current_active_user)
-):
     """
     Serves the user dashboard page.
-    This route is now protected.
-    If the user is a manager, it also fetches the list of all users.
+    This route is now protected by the get_current_active_user dependency.
+    If the user is a manager, it also fetches the list of all users and pending articles.
     """
     user_list = []
     pending_articles = []
-    pending_news = []
-    if user.token_role == 'manager':
+
+    if user.role == 'manager':
         user_list = db.query(models.User).all()
-        pending_articles = db.query(models.Article).filter(models.Article.status == 'pending').all()
-        pending_news = db.query(models.News).filter(models.News.status == 'pending').all()
+        pending_articles = db.query(models.Article).filter(models.Article.published == False).all()
+
 
     return templates.TemplateResponse("dashboard.html", {
         "request": request,
         "user": user,
         "user_list": user_list,
-        "pending_articles": pending_articles,
-        "pending_news": pending_news
+        "pending_articles": pending_articles
+
     })
 
 

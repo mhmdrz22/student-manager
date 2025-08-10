@@ -12,7 +12,6 @@
                 ارسال محتوای جدید
             </div>
             <div class="card-body">
-                {% if user.token_role in ['member', 'manager'] %}
                 <ul class="nav nav-tabs" id="myTab" role="tablist">
                     <li class="nav-item" role="presentation">
                         <button class="nav-link active" id="article-tab" data-bs-toggle="tab" data-bs-target="#article" type="button" role="tab">ارسال مقاله</button>
@@ -59,9 +58,6 @@
                     </div>
                     {% endif %}
                 </div>
-                {% else %}
-                <p class="text-muted">شما برای ارسال محتوا دسترسی ندارید. برای کسب دسترسی، با مدیر تماس بگیرید.</p>
-                {% endif %}
             </div>
         </div>
     </div>
@@ -69,7 +65,7 @@
     <!-- Right Column: User Management -->
     <div class="col-md-4">
         {% if user.token_role == 'manager' and user_list %}
-        <div class="card">
+        <div class="card mb-4">
             <div class="card-header">
                 مدیریت کاربران
             </div>
@@ -103,6 +99,29 @@
                         {% endfor %}
                     </tbody>
                 </table>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if user.token_role == 'manager' and pending_articles %}
+        <div class="card">
+            <div class="card-header">
+                مقالات در انتظار تأیید
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    {% for article in pending_articles %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <a href="/articles/{{ article.id }}">{{ article.title }}</a>
+                            <small class="d-block text-muted">نویسنده: {{ article.owner.username }}</small>
+                        </div>
+                        <form action="/api/v1/articles/{{ article.id }}/approve" method="post">
+                            <button type="submit" class="btn btn-sm btn-success">انتشار</button>
+                        </form>
+                    </li>
+                    {% endfor %}
+                </ul>
             </div>
         </div>
         {% endif %}
