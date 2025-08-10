@@ -59,6 +59,7 @@ class Event(Base):
     end_time = Column(DateTime(timezone=True), nullable=True)
     location = Column(String)
     category = Column(String, index=True)
+    status = Column(String, default="pending") # pending, approved, rejected
     image_url = Column(String, nullable=True)
     capacity = Column(Integer, nullable=True)
     registration_deadline = Column(DateTime(timezone=True), nullable=True)
