@@ -363,6 +363,7 @@ def approve_article(
 
     article_to_approve.status = "approved"
 
+@app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard_page(request: Request, db: Session = Depends(get_db), user: models.User = Depends(security.get_current_active_user)):
 
     """
