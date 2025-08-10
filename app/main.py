@@ -6,6 +6,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import uvicorn
 from pathlib import Path
+from datetime import datetime
 
 import os
 from sqlalchemy.orm import Session
@@ -218,10 +219,36 @@ async def handle_edit_news(
 
     return RedirectResponse(url=f"/news/{news_id}", status_code=302)
 
-@api_router.post("/events")
-async def create_event():
-    """Placeholder for event creation logic (Admin only)."""
-    return {"message": "Event creation endpoint"}
+@api_router.post("/events", response_class=HTMLResponse)
+async def create_event(
+    title: str = Form(...),
+    description: str = Form(...),
+    date: str = Form(...),
+    location: str = Form(...),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(security.require_role(["member", "manager"]))
+):
+    """Handles event creation from a logged-in user with member or manager role."""
+    try:
+        # The date is expected to be in YYYY-MM-DD format from the HTML form
+        event_date = datetime.strptime(date, "%Y-%m-%d")
+    except ValueError:
+        # Handle the case where the date format is incorrect
+        # You might want to return an error to the user
+        # For now, we'll raise an HTTPException
+        raise HTTPException(status_code=400, detail="Invalid date format. Please use YYYY-MM-DD.")
+
+    db_event = models.Event(
+        title=title,
+        description=description,
+        date=event_date,
+        location=location,
+        owner_id=current_user.id
+    )
+    db.add(db_event)
+    db.commit()
+    db.refresh(db_event)
+    return RedirectResponse(url="/events", status_code=302)
 
 
 
@@ -302,6 +329,15 @@ async def article_detail_page(request: Request, article_id: int, db: Session = D
     if not article:
         raise HTTPException(status_code=404, detail="Article not found")
     return templates.TemplateResponse("article_detail.html", {"request": request, "article": article})
+
+@app.get("/events/new", response_class=HTMLResponse)
+async def create_event_form(
+    request: Request,
+    current_user: models.User = Depends(security.require_role(["member", "manager"]))
+):
+    """Serves the page with a form to create a new event."""
+    return templates.TemplateResponse("create_event.html", {"request": request, "user": current_user})
+
 
 @app.get("/events", response_class=HTMLResponse)
 async def events_list_page(request: Request, db: Session = Depends(get_db)):
