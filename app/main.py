@@ -418,6 +418,52 @@ def reject_event(event_id: int, db: Session = Depends(get_db), current_user: mod
     return RedirectResponse(url="/dashboard", status_code=302)
 
 
+@api_router.post("/events/{event_id}/register", response_class=HTMLResponse)
+def register_for_event(
+    event_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(security.get_current_active_user)
+):
+    """Registers the current user for an event."""
+    event = db.query(models.Event).filter(models.Event.id == event_id).first()
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+
+    if event.registration_deadline and datetime.now(event.registration_deadline.tzinfo) > event.registration_deadline:
+        raise HTTPException(status_code=400, detail="Registration deadline has passed.")
+
+    if event.capacity and len(event.registrants) >= event.capacity:
+        raise HTTPException(status_code=400, detail="Event is full.")
+
+    if current_user in event.registrants:
+        raise HTTPException(status_code=400, detail="User is already registered for this event.")
+
+    event.registrants.append(current_user)
+    db.commit()
+
+    return RedirectResponse(url=f"/events/{event_id}", status_code=302)
+
+
+@api_router.post("/events/{event_id}/unregister", response_class=HTMLResponse)
+def unregister_from_event(
+    event_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(security.get_current_active_user)
+):
+    """Unregisters the current user from an event."""
+    event = db.query(models.Event).filter(models.Event.id == event_id).first()
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+
+    if current_user not in event.registrants:
+        raise HTTPException(status_code=400, detail="User is not registered for this event.")
+
+    event.registrants.remove(current_user)
+    db.commit()
+
+    return RedirectResponse(url=f"/events/{event_id}", status_code=302)
+
+
 app.include_router(api_router)
 
 from sqlalchemy.orm import joinedload
@@ -537,10 +583,21 @@ async def events_list_page(request: Request, db: Session = Depends(get_db), user
 @app.get("/events/{event_id}", response_class=HTMLResponse)
 async def event_detail_page(request: Request, event_id: int, db: Session = Depends(get_db), user: models.User = Depends(security.try_get_current_active_user)):
     """Serves the page for a single event."""
-    event = db.query(models.Event).options(joinedload(models.Event.owner)).filter(models.Event.id == event_id, models.Event.status == "approved").first()
+    event = db.query(models.Event).options(joinedload(models.Event.owner), joinedload(models.Event.registrants)).filter(models.Event.id == event_id, models.Event.status == "approved").first()
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
-    return templates.TemplateResponse("event_detail.html", {"request": request, "event": event, "user": user})
+
+    deadline_passed = False
+    if event.registration_deadline:
+        # Make sure 'now' is timezone-aware if the deadline is
+        deadline_passed = datetime.now(event.registration_deadline.tzinfo) > event.registration_deadline
+
+    return templates.TemplateResponse("event_detail.html", {
+        "request": request,
+        "event": event,
+        "user": user,
+        "deadline_passed": deadline_passed
+    })
 
 # --- Admin/Manager Specific Endpoints ---
 

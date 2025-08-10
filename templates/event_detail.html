@@ -32,7 +32,13 @@
                     <li class="list-group-item"><strong>پایان:</strong> {{ event.end_time.strftime('%Y-%m-%d %H:%M') }}</li>
                     {% endif %}
                     {% if event.capacity %}
-                    <li class="list-group-item"><strong>ظرفیت:</strong> {{ event.capacity }} نفر</li>
+                    <li class="list-group-item">
+                        <strong>ظرفیت:</strong>
+                        {{ event.registrants|length }} / {{ event.capacity }} نفر
+                        <div class="progress mt-1">
+                            <div class="progress-bar" role="progressbar" style="width: {{ (event.registrants|length / event.capacity) * 100 }}%;" aria-valuenow="{{ event.registrants|length }}" aria-valuemin="0" aria-valuemax="{{ event.capacity }}"></div>
+                        </div>
+                    </li>
                     {% endif %}
                     {% if event.registration_deadline %}
                     <li class="list-group-item"><strong>آخرین مهلت ثبت نام:</strong> {{ event.registration_deadline.strftime('%Y-%m-%d %H:%M') }}</li>
@@ -40,10 +46,24 @@
                      <li class="list-group-item"><strong>ایجاد کننده:</strong> {{ event.owner.username }}</li>
                 </ul>
                 <div class="card-body">
-                    <!-- Action Buttons -->
+                    <!-- Registration Buttons -->
                     {% if user %}
-                        {# Future button for registration could go here #}
-                        {# <a href="#" class="btn btn-success w-100">ثبت نام</a> #}
+                        {% set is_registered = user in event.registrants %}
+                        {% set is_full = event.capacity and event.registrants|length >= event.capacity %}
+
+                        {% if is_registered %}
+                            <form action="/api/v1/events/{{ event.id }}/unregister" method="post">
+                                <button type="submit" class="btn btn-danger w-100">لغو ثبت نام</button>
+                            </form>
+                        {% elif is_full %}
+                            <button class="btn btn-secondary w-100" disabled>ظرفیت تکمیل است</button>
+                        {% elif deadline_passed %}
+                             <button class="btn btn-secondary w-100" disabled>مهلت ثبت نام تمام شده</button>
+                        {% else %}
+                            <form action="/api/v1/events/{{ event.id }}/register" method="post">
+                                <button type="submit" class="btn btn-success w-100">ثبت نام</button>
+                            </form>
+                        {% endif %}
                     {% else %}
                         <a href="/login" class="btn btn-primary w-100">برای ثبت نام وارد شوید</a>
                     {% endif %}
@@ -62,6 +82,22 @@
                         <button type="submit" class="btn btn-danger w-100">حذف رویداد</button>
                     </form>
                 </div>
+            </div>
+            {% endif %}
+
+            <!-- Registrants List for Managers -->
+            {% if user and user.role == 'manager' %}
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h4>لیست ثبت نام شدگان</h4>
+                </div>
+                <ul class="list-group list-group-flush">
+                    {% for registrant in event.registrants %}
+                        <li class="list-group-item">{{ registrant.username }} ({{ registrant.email }})</li>
+                    {% else %}
+                        <li class="list-group-item">هنوز کسی ثبت نام نکرده است.</li>
+                    {% endfor %}
+                </ul>
             </div>
             {% endif %}
         </div>
