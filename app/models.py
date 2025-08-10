@@ -1,8 +1,13 @@
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text, Table
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 
 from .database import Base
+
+event_registration = Table('event_registration', Base.metadata,
+    Column('user_id', Integer, ForeignKey('users.id'), primary_key=True),
+    Column('event_id', Integer, ForeignKey('events.id'), primary_key=True)
+)
 
 class User(Base):
     __tablename__ = "users"
@@ -15,6 +20,8 @@ class User(Base):
 
     articles = relationship("Article", back_populates="owner")
     news = relationship("News", back_populates="owner")
+    created_events = relationship("Event", back_populates="owner")
+    registered_events = relationship("Event", secondary=event_registration, back_populates="registrants")
 
 class Article(Base):
     __tablename__ = "articles"
@@ -66,4 +73,5 @@ class Event(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     owner_id = Column(Integer, ForeignKey("users.id"))
 
-    owner = relationship("User")
+    owner = relationship("User", back_populates="created_events")
+    registrants = relationship("User", secondary=event_registration, back_populates="registered_events")
