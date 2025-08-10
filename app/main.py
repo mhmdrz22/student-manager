@@ -449,13 +449,13 @@ async def edit_event_form(
 @app.get("/events", response_class=HTMLResponse)
 async def events_list_page(request: Request, db: Session = Depends(get_db), user: models.User = Depends(security.try_get_current_active_user)):
     """Serves the page with a list of all events."""
-    events = db.query(models.Event).options(joinedload(models.Event.owner)).order_by(models.Event.start_time.desc()).all()
+    events = db.query(models.Event).options(joinedload(models.Event.owner)).filter(models.Event.status == "approved").order_by(models.Event.start_time.desc()).all()
     return templates.TemplateResponse("events_list.html", {"request": request, "events_list": events, "user": user})
 
 @app.get("/events/{event_id}", response_class=HTMLResponse)
 async def event_detail_page(request: Request, event_id: int, db: Session = Depends(get_db), user: models.User = Depends(security.try_get_current_active_user)):
     """Serves the page for a single event."""
-    event = db.query(models.Event).options(joinedload(models.Event.owner)).filter(models.Event.id == event_id).first()
+    event = db.query(models.Event).options(joinedload(models.Event.owner)).filter(models.Event.id == event_id, models.Event.status == "approved").first()
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
     return templates.TemplateResponse("event_detail.html", {"request": request, "event": event, "user": user})
@@ -491,6 +491,22 @@ def update_user_role(
     return RedirectResponse(url="/dashboard", status_code=302)
 
 
+@api_router.post("/news/{news_id}/approve", response_class=HTMLResponse)
+def approve_news(
+    news_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(security.require_role(["manager"]))
+):
+    """Approves a news item, setting its 'status' to 'approved'."""
+    news_to_approve = db.query(models.News).filter(models.News.id == news_id).first()
+    if not news_to_approve:
+        raise HTTPException(status_code=404, detail="News not found")
+
+    news_to_approve.status = "approved"
+    db.commit()
+    return RedirectResponse(url="/dashboard", status_code=302)
+
+
 @api_router.post("/articles/{article_id}/approve", response_class=HTMLResponse)
 def approve_article(
 
@@ -506,6 +522,23 @@ def approve_article(
 
     article_to_approve.status = "approved"
 
+
+@api_router.post("/events/{event_id}/approve", response_class=HTMLResponse)
+def approve_event(
+    event_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(security.require_role(["manager"]))
+):
+    """Approves an event, setting its 'status' to 'approved'."""
+    event_to_approve = db.query(models.Event).filter(models.Event.id == event_id).first()
+    if not event_to_approve:
+        raise HTTPException(status_code=404, detail="Event not found")
+
+    event_to_approve.status = "approved"
+    db.commit()
+    return RedirectResponse(url="/dashboard", status_code=302)
+
+
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard_page(request: Request, db: Session = Depends(get_db), user: models.User = Depends(security.get_current_active_user)):
 
@@ -516,18 +549,23 @@ async def dashboard_page(request: Request, db: Session = Depends(get_db), user: 
     """
     user_list = []
     pending_articles = []
+    pending_news = []
+    pending_events = []
 
     if user.role == 'manager':
         user_list = db.query(models.User).all()
-        pending_articles = db.query(models.Article).filter(models.Article.status == "pending").all()
+        pending_articles = db.query(models.Article).options(joinedload(models.Article.owner)).filter(models.Article.status == "pending").all()
+        pending_news = db.query(models.News).options(joinedload(models.News.owner)).filter(models.News.status == "pending").all()
+        pending_events = db.query(models.Event).options(joinedload(models.Event.owner)).filter(models.Event.status == "pending").all()
 
 
     return templates.TemplateResponse("dashboard.html", {
         "request": request,
         "user": user,
         "user_list": user_list,
-        "pending_articles": pending_articles
-
+        "pending_articles": pending_articles,
+        "pending_news": pending_news,
+        "pending_events": pending_events
     })
 
 
