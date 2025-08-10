@@ -32,12 +32,13 @@
                         </form>
                     </div>
                     <div class="tab-pane" id="news" role="tabpanel">
-                        <form action="/api/v1/news" method="post">
+                        <form action="/api/v1/news" method="post" enctype="multipart/form-data">
                             <div class="mb-3"><label class="form-label">عنوان خبر:</label><input type="text" name="title" class="form-control" required></div>
                             <div class="mb-3"><label class="form-label">خلاصه خبر:</label><textarea name="summary" rows="3" class="form-control"></textarea></div>
                             <div class="mb-3"><label class="form-label">دسته بندی:</label><input type="text" name="category" class="form-control"></div>
                             <div class="mb-3"><label class="form-label">محتوای خبر:</label><textarea name="content" rows="5" class="form-control" required></textarea></div>
-                            <div class="mb-3"><label class="form-label">آدرس تصویر:</label><input type="text" name="image_url" class="form-control"></div>
+                            <div class="mb-3"><label class="form-label">آدرس تصویر (اختیاری):</label><input type="text" name="image_url" class="form-control"></div>
+                            <div class="mb-3"><label class="form-label">یا آپلود تصویر (اختیاری):</label><input type="file" name="image_upload" class="form-control" accept="image/*"></div>
                             <button type="submit" class="btn btn-primary">ارسال خبر</button>
                         </form>
                     </div>

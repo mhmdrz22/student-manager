@@ -155,15 +155,27 @@ async def submit_news(
     summary: str = Form(...),
     content: str = Form(...),
     category: str = Form(...),
+    image_url: str = Form(None),
+    image_upload: UploadFile = File(None),
     db: Session = Depends(get_db),
     current_user: models.User = Depends(security.require_role(["member", "manager"]))
 ):
     """Handles news submission from a logged-in user with member or manager role."""
+    final_image_url = image_url
+
+    if image_upload and image_upload.filename:
+        upload_dir = "uploads/images"
+        os.makedirs(upload_dir, exist_ok=True)
+        saved_path = utils.save_upload_file(image_upload, destination=upload_dir)
+        # The path should be relative to the static mount point
+        final_image_url = "/" + saved_path.replace("\\", "/")
+
     db_news = models.News(
         title=title,
         summary=summary,
         content=content,
         category=category,
+        image_url=final_image_url,
         owner_id=current_user.id
     )
     db.add(db_news)
