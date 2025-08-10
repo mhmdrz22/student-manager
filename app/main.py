@@ -235,7 +235,7 @@ from sqlalchemy.orm import joinedload
 
 async def read_root(request: Request, db: Session = Depends(get_db), user: models.User = Depends(security.try_get_current_active_user)):
     """Serves the main page and displays the latest news."""
-    news_items = db.query(models.News).options(joinedload(models.News.owner)).filter(models.News.published == True).order_by(models.News.created_at.desc()).limit(3).all()
+    news_items = db.query(models.News).options(joinedload(models.News.owner)).filter(models.News.status == "approved").order_by(models.News.created_at.desc()).limit(3).all()
 
     return templates.TemplateResponse("index.html", {"request": request, "news_list": news_items, "user": user})
 
@@ -356,12 +356,12 @@ def approve_article(
     current_user: models.User = Depends(security.require_role(["manager"]))
 ):
 
-    """Approves an article, setting its 'published' status to True."""
+    """Approves an article, setting its 'status' to 'approved'."""
     article_to_approve = db.query(models.Article).filter(models.Article.id == article_id).first()
     if not article_to_approve:
         raise HTTPException(status_code=404, detail="Article not found")
 
-    article_to_approve.published = True
+    article_to_approve.status = "approved"
 
 async def dashboard_page(request: Request, db: Session = Depends(get_db), user: models.User = Depends(security.get_current_active_user)):
 
@@ -375,7 +375,7 @@ async def dashboard_page(request: Request, db: Session = Depends(get_db), user: 
 
     if user.role == 'manager':
         user_list = db.query(models.User).all()
-        pending_articles = db.query(models.Article).filter(models.Article.published == False).all()
+        pending_articles = db.query(models.Article).filter(models.Article.status == "pending").all()
 
 
     return templates.TemplateResponse("dashboard.html", {
