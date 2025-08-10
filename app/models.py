@@ -53,8 +53,16 @@ class Event(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, index=True)
+    summary = Column(Text, nullable=True)
     description = Column(Text)
-    date = Column(DateTime(timezone=True))
+    start_time = Column(DateTime(timezone=True))
+    end_time = Column(DateTime(timezone=True), nullable=True)
     location = Column(String)
+    category = Column(String, index=True)
+    image_url = Column(String, nullable=True)
+    capacity = Column(Integer, nullable=True)
+    registration_deadline = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     owner_id = Column(Integer, ForeignKey("users.id"))
+
+    owner = relationship("User")

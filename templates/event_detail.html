@@ -1,14 +1,71 @@
 {% extends "base.html" %}
 {% block title %}{{ event.title }}{% endblock %}
+
 {% block content %}
-<div class="card">
-    <div class="card-body">
-        <h1 class="card-title">{{ event.title }}</h1>
-        <h6 class="card-subtitle mb-2 text-muted">تاریخ: {{ event.date.strftime('%Y-%m-%d %H:%M') }}</h6>
-        <h6 class="card-subtitle mb-2 text-muted">مکان: {{ event.location }}</h6>
-        <hr>
-        <p class="card-text">{{ event.description }}</p>
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Event Main Info -->
+            <div class="card">
+                {% if event.image_url %}
+                <img src="{{ event.image_url }}" class="card-img-top" alt="Event Image for {{ event.title }}">
+                {% endif %}
+                <div class="card-body">
+                    <h1 class="card-title">{{ event.title }}</h1>
+                    <p class="card-text text-muted">{{ event.summary }}</p>
+                    <hr>
+                    <p class="card-text" style="white-space: pre-wrap;">{{ event.description }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <!-- Event Details Sidebar -->
+            <div class="card">
+                <div class="card-header">
+                    <h4>جزئیات رویداد</h4>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item"><strong>دسته بندی:</strong> {{ event.category }}</li>
+                    <li class="list-group-item"><strong>مکان:</strong> {{ event.location }}</li>
+                    <li class="list-group-item"><strong>شروع:</strong> {{ event.start_time.strftime('%Y-%m-%d %H:%M') }}</li>
+                    {% if event.end_time %}
+                    <li class="list-group-item"><strong>پایان:</strong> {{ event.end_time.strftime('%Y-%m-%d %H:%M') }}</li>
+                    {% endif %}
+                    {% if event.capacity %}
+                    <li class="list-group-item"><strong>ظرفیت:</strong> {{ event.capacity }} نفر</li>
+                    {% endif %}
+                    {% if event.registration_deadline %}
+                    <li class="list-group-item"><strong>آخرین مهلت ثبت نام:</strong> {{ event.registration_deadline.strftime('%Y-%m-%d %H:%M') }}</li>
+                    {% endif %}
+                     <li class="list-group-item"><strong>ایجاد کننده:</strong> {{ event.owner.username }}</li>
+                </ul>
+                <div class="card-body">
+                    <!-- Action Buttons -->
+                    {% if user %}
+                        {# Future button for registration could go here #}
+                        {# <a href="#" class="btn btn-success w-100">ثبت نام</a> #}
+                    {% else %}
+                        <a href="/login" class="btn btn-primary w-100">برای ثبت نام وارد شوید</a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Admin Actions -->
+            {% if user and (user.role == 'manager' or (user.role == 'member' and event.owner_id == user.id)) %}
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h4>مدیریت رویداد</h4>
+                </div>
+                <div class="card-body">
+                    <a href="/events/{{ event.id }}/edit" class="btn btn-warning w-100 mb-2">ویرایش رویداد</a>
+                    <form action="/api/v1/events/{{ event.id }}/delete" method="post" onsubmit="return confirm('آیا از حذف این رویداد مطمئن هستید؟');">
+                        <button type="submit" class="btn btn-danger w-100">حذف رویداد</button>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+        </div>
     </div>
+    <a href="/events" class="btn btn-secondary mt-4">بازگشت به لیست رویدادها</a>
 </div>
-<a href="/events" class="btn btn-primary mt-3">بازگشت به لیست رویدادها</a>
 {% endblock %}

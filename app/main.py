@@ -222,27 +222,37 @@ async def handle_edit_news(
 @api_router.post("/events", response_class=HTMLResponse)
 async def create_event(
     title: str = Form(...),
+    summary: str = Form(...),
     description: str = Form(...),
-    date: str = Form(...),
+    category: str = Form(...),
     location: str = Form(...),
+    start_time: str = Form(...),
+    end_time: str = Form(None),
+    image_url: str = Form(None),
+    capacity: int = Form(None),
+    registration_deadline: str = Form(None),
     db: Session = Depends(get_db),
     current_user: models.User = Depends(security.require_role(["member", "manager"]))
 ):
     """Handles event creation from a logged-in user with member or manager role."""
     try:
-        # The date is expected to be in YYYY-MM-DD format from the HTML form
-        event_date = datetime.strptime(date, "%Y-%m-%d")
-    except ValueError:
-        # Handle the case where the date format is incorrect
-        # You might want to return an error to the user
-        # For now, we'll raise an HTTPException
-        raise HTTPException(status_code=400, detail="Invalid date format. Please use YYYY-MM-DD.")
+        start_time_obj = datetime.strptime(start_time, "%Y-%m-%dT%H:%M")
+        end_time_obj = datetime.strptime(end_time, "%Y-%m-%dT%H:%M") if end_time else None
+        registration_deadline_obj = datetime.strptime(registration_deadline, "%Y-%m-%dT%H:%M") if registration_deadline else None
+    except (ValueError, TypeError):
+        raise HTTPException(status_code=400, detail="Invalid date format. Please use YYYY-MM-DDTHH:MM.")
 
     db_event = models.Event(
         title=title,
+        summary=summary,
         description=description,
-        date=event_date,
+        category=category,
         location=location,
+        start_time=start_time_obj,
+        end_time=end_time_obj,
+        image_url=image_url,
+        capacity=capacity,
+        registration_deadline=registration_deadline_obj,
         owner_id=current_user.id
     )
     db.add(db_event)
@@ -250,6 +260,80 @@ async def create_event(
     db.refresh(db_event)
     return RedirectResponse(url="/events", status_code=302)
 
+
+@api_router.post("/events/{event_id}/edit", response_class=HTMLResponse)
+async def handle_edit_event(
+    request: Request,
+    event_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(security.get_current_active_user),
+    title: str = Form(...),
+    summary: str = Form(...),
+    description: str = Form(...),
+    category: str = Form(...),
+    location: str = Form(...),
+    start_time: str = Form(...),
+    end_time: str = Form(None),
+    image_url: str = Form(None),
+    capacity: int = Form(None),
+    registration_deadline: str = Form(None)
+):
+    """Handles the submission of the event edit form."""
+    event_to_edit = db.query(models.Event).filter(models.Event.id == event_id).first()
+    if not event_to_edit:
+        raise HTTPException(status_code=404, detail="Event not found")
+
+    # Authorization check
+    is_manager = current_user.role == 'manager'
+    is_owner_member = current_user.role == 'member' and event_to_edit.owner_id == current_user.id
+
+    if not (is_manager or is_owner_member):
+        raise HTTPException(status_code=403, detail="You do not have permission to edit this event.")
+
+    # Update the event fields
+    try:
+        event_to_edit.start_time = datetime.strptime(start_time, "%Y-%m-%dT%H:%M")
+        event_to_edit.end_time = datetime.strptime(end_time, "%Y-%m-%dT%H:%M") if end_time else None
+        event_to_edit.registration_deadline = datetime.strptime(registration_deadline, "%Y-%m-%dT%H:%M") if registration_deadline else None
+    except (ValueError, TypeError):
+        raise HTTPException(status_code=400, detail="Invalid date format. Please use YYYY-MM-DDTHH:MM.")
+
+    event_to_edit.title = title
+    event_to_edit.summary = summary
+    event_to_edit.description = description
+    event_to_edit.category = category
+    event_to_edit.location = location
+    event_to_edit.image_url = image_url
+    event_to_edit.capacity = capacity
+
+    db.commit()
+
+    return RedirectResponse(url=f"/events/{event_id}", status_code=302)
+
+
+@api_router.post("/events/{event_id}/delete", response_class=HTMLResponse)
+async def delete_event(
+    request: Request,
+    event_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(security.get_current_active_user)
+):
+    """Handles the deletion of an event."""
+    event_to_delete = db.query(models.Event).filter(models.Event.id == event_id).first()
+    if not event_to_delete:
+        raise HTTPException(status_code=404, detail="Event not found")
+
+    # Authorization check
+    is_manager = current_user.role == 'manager'
+    is_owner_member = current_user.role == 'member' and event_to_delete.owner_id == current_user.id
+
+    if not (is_manager or is_owner_member):
+        raise HTTPException(status_code=403, detail="You do not have permission to delete this event.")
+
+    db.delete(event_to_delete)
+    db.commit()
+
+    return RedirectResponse(url="/events", status_code=302)
 
 
 app.include_router(api_router)
@@ -339,19 +423,42 @@ async def create_event_form(
     return templates.TemplateResponse("create_event.html", {"request": request, "user": current_user})
 
 
-@app.get("/events", response_class=HTMLResponse)
-async def events_list_page(request: Request, db: Session = Depends(get_db)):
-    """Serves the page with a list of all events."""
-    events = db.query(models.Event).order_by(models.Event.date.desc()).all()
-    return templates.TemplateResponse("events_list.html", {"request": request, "events_list": events})
-
-@app.get("/events/{event_id}", response_class=HTMLResponse)
-async def event_detail_page(request: Request, event_id: int, db: Session = Depends(get_db)):
-    """Serves the page for a single event."""
-    event = db.query(models.Event).filter(models.Event.id == event_id).first()
+@app.get("/events/{event_id}/edit", response_class=HTMLResponse)
+async def edit_event_form(
+    request: Request,
+    event_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(security.get_current_active_user)
+):
+    """Serves the page with a form to edit an existing event."""
+    event = db.query(models.Event).options(joinedload(models.Event.owner)).filter(models.Event.id == event_id).first()
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
-    return templates.TemplateResponse("event_detail.html", {"request": request, "event": event})
+
+    # Authorization check
+    is_manager = current_user.role == 'manager'
+    # Members can only edit their own events
+    is_owner_member = current_user.role == 'member' and event.owner_id == current_user.id
+
+    if not (is_manager or is_owner_member):
+        raise HTTPException(status_code=403, detail="You do not have permission to edit this event.")
+
+    return templates.TemplateResponse("edit_event.html", {"request": request, "event": event, "user": current_user})
+
+
+@app.get("/events", response_class=HTMLResponse)
+async def events_list_page(request: Request, db: Session = Depends(get_db), user: models.User = Depends(security.try_get_current_active_user)):
+    """Serves the page with a list of all events."""
+    events = db.query(models.Event).options(joinedload(models.Event.owner)).order_by(models.Event.start_time.desc()).all()
+    return templates.TemplateResponse("events_list.html", {"request": request, "events_list": events, "user": user})
+
+@app.get("/events/{event_id}", response_class=HTMLResponse)
+async def event_detail_page(request: Request, event_id: int, db: Session = Depends(get_db), user: models.User = Depends(security.try_get_current_active_user)):
+    """Serves the page for a single event."""
+    event = db.query(models.Event).options(joinedload(models.Event.owner)).filter(models.Event.id == event_id).first()
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    return templates.TemplateResponse("event_detail.html", {"request": request, "event": event, "user": user})
 
 # --- Admin/Manager Specific Endpoints ---
 
