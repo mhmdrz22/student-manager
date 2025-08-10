@@ -19,11 +19,6 @@
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="news-tab" data-bs-toggle="tab" data-bs-target="#news" type="button" role="tab">ارسال خبر</button>
                     </li>
-                    {% if user.token_role == 'manager' %}
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="event-tab" data-bs-toggle="tab" data-bs-target="#event" type="button" role="tab">ایجاد رویداد</button>
-                    </li>
-                    {% endif %}
                 </ul>
                 <div class="tab-content pt-3">
                     <div class="tab-pane active" id="article" role="tabpanel">
@@ -46,25 +41,25 @@
                             <button type="submit" class="btn btn-primary">ارسال خبر</button>
                         </form>
                     </div>
-                    {% if user.token_role == 'manager' %}
-                    <div class="tab-pane" id="event" role="tabpanel">
-                        <form action="/api/v1/events" method="post">
-                            <div class="mb-3"><label class="form-label">عنوان رویداد:</label><input type="text" name="title" class="form-control" required></div>
-                            <div class="mb-3"><label class="form-label">توضیحات:</label><textarea name="description" rows="3" class="form-control" required></textarea></div>
-                            <div class="mb-3"><label class="form-label">تاریخ:</label><input type="datetime-local" name="date" class="form-control" required></div>
-                            <div class="mb-3"><label class="form-label">مکان:</label><input type="text" name="location" class="form-control" required></div>
-                            <button type="submit" class="btn btn-primary">ایجاد رویداد</button>
-                        </form>
-                    </div>
-                    {% endif %}
                 </div>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header">
+                مدیریت رویدادها
+            </div>
+            <div class="card-body">
+                {% if user.role == 'manager' or user.role == 'member' %}
+                <a href="/events/new" class="btn btn-primary">ایجاد رویداد جدید</a>
+                {% endif %}
             </div>
         </div>
     </div>
 
     <!-- Right Column: User Management -->
     <div class="col-md-4">
-        {% if user.token_role == 'manager' and user_list %}
+        {% if user.role == 'manager' and user_list %}
         <div class="card mb-4">
             <div class="card-header">
                 مدیریت کاربران
@@ -103,7 +98,7 @@
         </div>
         {% endif %}
 
-        {% if user.token_role == 'manager' and pending_articles %}
+        {% if user.role == 'manager' and pending_articles %}
         <div class="card">
             <div class="card-header">
                 مقالات در انتظار تأیید
@@ -129,7 +124,7 @@
 </div>
 
 <!-- Pending Content Section for Managers -->
-{% if user.token_role == 'manager' %}
+{% if user.role == 'manager' %}
 <div class="row mt-4">
     <!-- Pending Articles -->
     <div class="col-md-6">
