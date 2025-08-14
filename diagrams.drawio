@@ -1,0 +1,284 @@
+<mxfile host="app.diagrams.net" modified="2025-08-14T05:07:00.000Z" agent="Jules" etag="1" version="1.0.0" type="device">
+  <diagram id="use-case-page" name="Use Case Diagram">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="actor-anonymous" value="Anonymous User" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" parent="1" vertex="1">
+          <mxGeometry x="100" y="400" width="30" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="actor-user" value="User" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" parent="1" vertex="1">
+          <mxGeometry x="250" y="400" width="30" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="actor-member" value="Member" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" parent="1" vertex="1">
+          <mxGeometry x="400" y="400" width="30" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="actor-manager" value="Manager" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" parent="1" vertex="1">
+          <mxGeometry x="550" y="400" width="30" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-boundary" value="Scientific Association System" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=none;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;" parent="1" vertex="1">
+          <mxGeometry x="320" y="50" width="460" height="700" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-view-news" value="View Approved News" style="ellipse;whiteSpace=wrap;html=1;" parent="uc-boundary" vertex="1">
+          <mxGeometry y="26" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-view-articles" value="View Approved Articles" style="ellipse;whiteSpace=wrap;html=1;" parent="uc-boundary" vertex="1">
+          <mxGeometry y="96" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-view-events" value="View Approved Events" style="ellipse;whiteSpace=wrap;html=1;" parent="uc-boundary" vertex="1">
+          <mxGeometry y="166" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-register" value="Register for an Account" style="ellipse;whiteSpace=wrap;html=1;" parent="uc-boundary" vertex="1">
+          <mxGeometry y="236" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-login" value="Log In" style="ellipse;whiteSpace=wrap;html=1;" parent="uc-boundary" vertex="1">
+          <mxGeometry y="306" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-submit-article" value="Submit Article" style="ellipse;whiteSpace=wrap;html=1;" parent="uc-boundary" vertex="1">
+          <mxGeometry y="376" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-create-news" value="Create News" style="ellipse;whiteSpace=wrap;html=1;" parent="uc-boundary" vertex="1">
+          <mxGeometry y="446" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-create-event" value="Create Event" style="ellipse;whiteSpace=wrap;html=1;" parent="uc-boundary" vertex="1">
+          <mxGeometry y="516" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-approve-content" value="Approve/Reject Content" style="ellipse;whiteSpace=wrap;html=1;" parent="uc-boundary" vertex="1">
+          <mxGeometry y="586" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-manage-users" value="Manage Users" style="ellipse;whiteSpace=wrap;html=1;" parent="uc-boundary" vertex="1">
+          <mxGeometry y="656" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="rel-user-anon" value="" style="endArrow=block;endFill=0;html=1;entryX=0;entryY=0.5;exitX=1;exitY=0.5;" edge="1" parent="1" source="actor-anonymous" target="actor-user">
+            <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="rel-member-user" value="" style="endArrow=block;endFill=0;html=1;entryX=0;entryY=0.5;exitX=1;exitY=0.5;" edge="1" parent="1" source="actor-user" target="actor-member">
+            <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="rel-manager-member" value="" style="endArrow=block;endFill=0;html=1;entryX=0;entryY=0.5;exitX=1;exitY=0.5;" edge="1" parent="1" source="actor-member" target="actor-manager">
+            <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="assoc-anon-view-news" value="" style="endArrow=none;html=1;" edge="1" parent="1" source="actor-anonymous" target="uc-view-news">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="assoc-anon-view-articles" value="" style="endArrow=none;html=1;" edge="1" parent="1" source="actor-anonymous" target="uc-view-articles">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="assoc-user-submit-article" value="" style="endArrow=none;html=1;" edge="1" parent="1" source="actor-user" target="uc-submit-article">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="assoc-member-create-news" value="" style="endArrow=none;html=1;" edge="1" parent="1" source="actor-member" target="uc-create-news">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="assoc-member-create-event" value="" style="endArrow=none;html=1;" edge="1" parent="1" source="actor-member" target="uc-create-event">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="assoc-manager-approve" value="" style="endArrow=none;html=1;" edge="1" parent="1" source="actor-manager" target="uc-approve-content">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="assoc-manager-users" value="" style="endArrow=none;html=1;" edge="1" parent="1" source="actor-manager" target="uc-manage-users">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="class-diagram-page" name="Class Diagram">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="class-user" value="&lt;b&gt;User&lt;/b&gt;&lt;hr&gt;+id: int&lt;br&gt;+username: str&lt;br&gt;+email: str&lt;br&gt;-hashed_password: str&lt;br&gt;+role: str" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=none;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;" parent="1" vertex="1">
+          <mxGeometry x="350" y="40" width="200" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="class-article" value="&lt;b&gt;Article&lt;/b&gt;&lt;hr&gt;+id: int&lt;br&gt;+title: str&lt;br&gt;+summary: str&lt;br&gt;+content: str&lt;br&gt;+image_url: str&lt;br&gt;+file_path: str&lt;br&gt;+status: str&lt;br&gt;+created_at: datetime" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=none;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;" parent="1" vertex="1">
+          <mxGeometry x="40" y="280" width="200" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="class-news" value="&lt;b&gt;News&lt;/b&gt;&lt;hr&gt;+id: int&lt;br&gt;+title: str&lt;br&gt;+summary: str&lt;br&gt;+content: str&lt;br&gt;+image_url: str&lt;br&gt;+category: str&lt;br&gt;+status: str&lt;br&gt;+created_at: datetime" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=none;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;" parent="1" vertex="1">
+          <mxGeometry x="350" y="280" width="200" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="class-event" value="&lt;b&gt;Event&lt;/b&gt;&lt;hr&gt;+id: int&lt;br&gt;+title: str&lt;br&gt;+summary: str&lt;br&gt;+description: str&lt;br&gt;+start_time: datetime&lt;br&gt;+end_time: datetime&lt;br&gt;+location: str&lt;br&gt;+category: str&lt;br&gt;+status: str&lt;br&gt;+image_url: str&lt;br&gt;+capacity: int&lt;br&gt;+registration_deadline: datetime&lt;br&gt;+created_at: datetime" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=none;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;" parent="1" vertex="1">
+          <mxGeometry x="650" y="280" width="200" height="280" as="geometry" />
+        </mxCell>
+        <mxCell id="class-registration" value="&lt;i&gt;&amp;lt;&amp;lt;association&amp;gt;&amp;gt;&lt;/i&gt;&lt;br&gt;&lt;b&gt;event_registration&lt;/b&gt;&lt;hr&gt;+user_id: int (FK)&lt;br&gt;+event_id: int (FK)" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=40;fillColor=none;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;" parent="1" vertex="1">
+          <mxGeometry x="450" y="550" width="200" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="rel-user-article" value="owns/creates" style="endArrow=classic;html=1;exitX=0;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="class-user" target="class-article">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint as="sourcePoint" />
+            <mxPoint as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-user-news" value="owns/creates" style="endArrow=classic;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="class-user" target="class-news">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint as="sourcePoint" />
+            <mxPoint as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-user-event-owner" value="owns/creates" style="endArrow=classic;html=1;exitX=1;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="class-user" target="class-event">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint as="sourcePoint" />
+            <mxPoint as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-user-event-reg" value="registers for" style="endArrow=none;dashed=1;html=1;" edge="1" parent="1" source="class-user" target="class-event">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint as="sourcePoint" />
+            <mxPoint as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-assoc-user" value="" style="endArrow=none;dashed=1;html=1;" edge="1" parent="1" source="class-registration" target="class-user">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint as="sourcePoint" />
+            <mxPoint as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-assoc-event" value="" style="endArrow=none;dashed=1;html=1;" edge="1" parent="1" source="class-registration" target="class-event">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint as="sourcePoint" />
+            <mxPoint as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="sequence-diagram-page" name="Sequence Diagram">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="seq-title" value="Manager Approves Pending Article" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;" vertex="1" parent="1">
+            <mxGeometry x="250" y="20" width="400" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="seq-p1" value="Manager (Actor)" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" vertex="1" parent="1">
+            <mxGeometry x="50" y="80" width="30" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="seq-p1-line" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];" vertex="1" parent="1">
+            <mxGeometry x="65" y="140" width="0" height="450" as="geometry"/>
+        </mxCell>
+        <mxCell id="seq-p2" value=":Dashboard" style="shape=umlLifeline;participant=umlBoundary;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;verticalAlign=top;spacingTop=36;outlineConnect=0;" vertex="1" parent="1">
+            <mxGeometry x="200" y="80" width="100" height="500" as="geometry"/>
+        </mxCell>
+        <mxCell id="seq-p3" value=":FastAPI_Server" style="shape=umlLifeline;participant=umlControl;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;verticalAlign=top;spacingTop=36;outlineConnect=0;" vertex="1" parent="1">
+            <mxGeometry x="400" y="80" width="100" height="500" as="geometry"/>
+        </mxCell>
+        <mxCell id="seq-p4" value=":Database" style="shape=umlLifeline;participant=umlEntity;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;verticalAlign=top;spacingTop=36;outlineConnect=0;" vertex="1" parent="1">
+            <mxGeometry x="600" y="80" width="100" height="500" as="geometry"/>
+        </mxCell>
+        <mxCell id="msg1" value="Clicks 'Approve' button" style="endArrow=classic;html=1;" edge="1" parent="1" source="seq-p1-line" target="seq-p2">
+            <mxGeometry relative="1" as="geometry">
+                <mxPoint x="75" y="180" as="sourcePoint"/>
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="msg2" value="POST /api/v1/articles/{id}/approve" style="endArrow=classic;html=1;" edge="1" parent="1" source="seq-p2" target="seq-p3">
+            <mxGeometry relative="1" as="geometry">
+                <mxPoint x="250" y="210" as="sourcePoint"/>
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="msg3" value="SELECT article where id=?" style="endArrow=classic;html=1;" edge="1" parent="1" source="seq-p3" target="seq-p4">
+            <mxGeometry relative="1" as="geometry">
+                <mxPoint x="450" y="240" as="sourcePoint"/>
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="msg4" value="Return article data" style="endArrow=open;html=1;dashed=1;" edge="1" parent="1" source="seq-p4" target="seq-p3">
+            <mxGeometry relative="1" as="geometry">
+                <mxPoint x="450" y="270" as="targetPoint"/>
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="msg5" value="302 Redirect to /dashboard" style="endArrow=open;html=1;dashed=1;" edge="1" parent="1" source="seq-p3" target="seq-p2">
+            <mxGeometry relative="1" as="geometry">
+                <mxPoint x="250" y="360" as="targetPoint"/>
+            </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="activity-diagram-page" name="Activity Diagram">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="act-start" value="" style="ellipse;html=1;shape=endState;fillColor=#000000;strokeColor=#000000;" vertex="1" parent="1">
+            <mxGeometry x="410" y="40" width="30" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="act-fill-form" value="User fills out content form" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+            <mxGeometry x="365" y="110" width="120" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="act-submit" value="User clicks 'Submit'" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+            <mxGeometry x="365" y="210" width="120" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="act-save" value="System saves content with 'pending' status" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+            <mxGeometry x="365" y="310" width="120" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="act-fork" value="" style="shape=line;html=1;strokeWidth=3;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];" vertex="1" parent="1">
+            <mxGeometry x="250" y="400" width="350" height="0" as="geometry"/>
+        </mxCell>
+        <mxCell id="act-success" value="System shows 'Submission successful' message" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+            <mxGeometry x="150" y="440" width="120" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="act-dashboard" value="Content appears in Manager's dashboard" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+            <mxGeometry x="580" y="440" width="120" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="act-decision" value="Manager approves?" style="rhombus;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+            <mxGeometry x="600" y="540" width="80" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="act-approve" value="System updates status to 'approved'" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+            <mxGeometry x="450" y="660" width="120" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="act-reject" value="System deletes content" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+            <mxGeometry x="730" y="660" width="120" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="act-remove" value="Content is removed from pending list" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+            <mxGeometry x="590" y="760" width="120" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="act-join" value="" style="shape=line;html=1;strokeWidth=3;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];" vertex="1" parent="1">
+            <mxGeometry x="250" y="850" width="350" height="0" as="geometry"/>
+        </mxCell>
+        <mxCell id="act-end" value="" style="ellipse;html=1;shape=endState;fillColor=#000000;strokeColor=#000000;" vertex="1" parent="1">
+            <mxGeometry x="410" y="880" width="30" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge-start-fill" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="act-start" target="act-fill-form">
+            <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge-fill-submit" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="act-fill-form" target="act-submit">
+            <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge-submit-save" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="act-submit" target="act-save">
+            <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge-save-fork" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="act-save" target="act-fork">
+            <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge-fork-success" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="act-fork" target="act-success">
+            <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge-fork-dashboard" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="act-fork" target="act-dashboard">
+            <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge-dashboard-decision" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="act-dashboard" target="act-decision">
+            <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge-decision-approve" value="[Yes]" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="act-decision" target="act-approve">
+            <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge-decision-reject" value="[No]" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="act-decision" target="act-reject">
+            <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge-approve-remove" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="act-approve" target="act-remove">
+            <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge-reject-remove" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="act-reject" target="act-remove">
+            <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge-remove-join" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="act-remove" target="act-join">
+            <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge-success-join" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="act-success" target="act-join">
+            <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge-join-end" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="act-join" target="act-end">
+            <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
