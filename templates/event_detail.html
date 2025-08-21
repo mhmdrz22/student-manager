@@ -103,5 +103,47 @@
         </div>
     </div>
     <a href="/events" class="btn btn-secondary mt-4">بازگشت به لیست رویدادها</a>
+
+    <!-- Comments Section -->
+    <hr class="my-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h3 class="mb-3">نظرات</h3>
+            {% if user %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <form action="/api/v1/comments" method="post">
+                        <input type="hidden" name="event_id" value="{{ event.id }}">
+                        <div class="mb-3">
+                            <label for="commentContent" class="form-label">نظر شما</label>
+                            <textarea class="form-control" id="commentContent" name="content" rows="3" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">ارسال نظر</button>
+                    </form>
+                </div>
+            </div>
+            {% else %}
+            <p><a href="/login">برای ثبت نظر وارد شوید</a></p>
+            {% endif %}
+
+            {% for comment in event.comments %}
+            <div class="card mb-2">
+                <div class="card-body">
+                    <p class="card-text">{{ comment.content }}</p>
+                    <div class="d-flex justify-content-between text-muted">
+                        <small>توسط: {{ comment.owner.username }} در {{ comment.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                        {% if user and (user.id == comment.owner_id or user.role == 'manager') %}
+                        <form action="/api/v1/comments/{{ comment.id }}/delete" method="post" onsubmit="return confirm('آیا از حذف این نظر مطمئن هستید؟');">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">حذف</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <p>هنوز نظری ثبت نشده است.</p>
+            {% endfor %}
+        </div>
+    </div>
 </div>
 {% endblock %}

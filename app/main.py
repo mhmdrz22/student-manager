@@ -484,6 +484,58 @@ def unregister_from_event(
     return RedirectResponse(url=f"/events/{event_id}", status_code=302)
 
 
+@api_router.post("/comments", response_class=HTMLResponse)
+def create_comment(
+    request: Request,
+    content: str = Form(...),
+    news_id: Optional[int] = Form(None),
+    article_id: Optional[int] = Form(None),
+    event_id: Optional[int] = Form(None),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(security.get_current_active_user)
+):
+    """Creates a comment on a news item, article, or event."""
+    if not any([news_id, article_id, event_id]):
+        raise HTTPException(status_code=400, detail="A comment must be associated with a news item, article, or event.")
+
+    db_comment = models.Comment(
+        content=content,
+        owner_id=current_user.id,
+        news_id=news_id,
+        article_id=article_id,
+        event_id=event_id
+    )
+    db.add(db_comment)
+    db.commit()
+
+    # Redirect back to the page the user was on
+    redirect_url = request.headers.get("referer", "/")
+    return RedirectResponse(url=redirect_url, status_code=302)
+
+
+@api_router.post("/comments/{comment_id}/delete", response_class=HTMLResponse)
+def delete_comment(
+    comment_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(security.get_current_active_user)
+):
+    """Deletes a comment."""
+    comment_to_delete = db.query(models.Comment).filter(models.Comment.id == comment_id).first()
+    if not comment_to_delete:
+        raise HTTPException(status_code=404, detail="Comment not found")
+
+    if comment_to_delete.owner_id != current_user.id and current_user.role != 'manager':
+        raise HTTPException(status_code=403, detail="Not authorized to delete this comment")
+
+    db.delete(comment_to_delete)
+    db.commit()
+
+    # Redirect back to the page the user was on
+    redirect_url = request.headers.get("referer", "/")
+    return RedirectResponse(url=redirect_url, status_code=302)
+
+
 app.include_router(api_router)
 
 from sqlalchemy.orm import joinedload
@@ -527,7 +579,7 @@ async def news_list_page(request: Request, db: Session = Depends(get_db)):
 @app.get("/news/{news_id}", response_class=HTMLResponse)
 async def news_detail_page(request: Request, news_id: int, db: Session = Depends(get_db), user: models.User = Depends(security.try_get_current_active_user)):
     """Serves the page for a single news article."""
-    news_item = db.query(models.News).options(joinedload(models.News.owner)).filter(models.News.id == news_id, models.News.status == "approved").first()
+    news_item = db.query(models.News).options(joinedload(models.News.owner), joinedload(models.News.comments).joinedload(models.Comment.owner)).filter(models.News.id == news_id, models.News.status == "approved").first()
     if not news_item:
         raise HTTPException(status_code=404, detail="News not found")
     return templates.TemplateResponse("news_detail.html", {"request": request, "news": news_item, "user": user})
@@ -558,7 +610,7 @@ async def articles_list_page(request: Request, db: Session = Depends(get_db)):
 @app.get("/articles/{article_id}", response_class=HTMLResponse)
 async def article_detail_page(request: Request, article_id: int, db: Session = Depends(get_db), user: models.User = Depends(security.try_get_current_active_user)):
     """Serves the page for a single article."""
-    article = db.query(models.Article).options(joinedload(models.Article.owner)).filter(models.Article.id == article_id, models.Article.status == "approved").first()
+    article = db.query(models.Article).options(joinedload(models.Article.owner), joinedload(models.Article.comments).joinedload(models.Comment.owner)).filter(models.Article.id == article_id, models.Article.status == "approved").first()
     if not article:
         raise HTTPException(status_code=404, detail="Article not found")
     return templates.TemplateResponse("article_detail.html", {"request": request, "article": article, "user": user})
@@ -604,7 +656,11 @@ async def events_list_page(request: Request, db: Session = Depends(get_db), user
 @app.get("/events/{event_id}", response_class=HTMLResponse)
 async def event_detail_page(request: Request, event_id: int, db: Session = Depends(get_db), user: models.User = Depends(security.try_get_current_active_user)):
     """Serves the page for a single event."""
-    event = db.query(models.Event).options(joinedload(models.Event.owner), joinedload(models.Event.registrants)).filter(models.Event.id == event_id, models.Event.status == "approved").first()
+    event = db.query(models.Event).options(
+        joinedload(models.Event.owner),
+        joinedload(models.Event.registrants),
+        joinedload(models.Event.comments).joinedload(models.Comment.owner)
+    ).filter(models.Event.id == event_id, models.Event.status == "approved").first()
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
 
