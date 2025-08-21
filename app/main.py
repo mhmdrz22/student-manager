@@ -7,6 +7,7 @@ from fastapi.templating import Jinja2Templates
 import uvicorn
 from pathlib import Path
 from datetime import datetime
+from typing import Optional
 
 import os
 from sqlalchemy.orm import Session
