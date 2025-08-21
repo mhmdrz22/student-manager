@@ -26,12 +26,30 @@
 
 <hr class="my-5">
 
-<!-- Upcoming Events Teaser (Placeholder) -->
-<div class="row mt-5">
-    <div class="col text-center">
-        <h2>رویدادهای آینده</h2>
-        <p>به زودی بخش رویدادها در اینجا نمایش داده خواهد شد.</p>
-        <!-- <a href="/events" class="btn btn-info">مشاهده همه رویدادها</a> -->
+<h2 class="text-center mb-4">آخرین رویدادها</h2>
+<div class="row">
+    {% for event in events_list %}
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            {% if event.image_url %}
+            <img src="{{ event.image_url }}" class="card-img-top" alt="{{ event.title }}" style="height: 200px; object-fit: cover;">
+            {% endif %}
+            <div class="card-body">
+                <h5 class="card-title">{{ event.title }}</h5>
+                <p class="card-text">{{ event.summary }}</p>
+                <p class="card-text"><small class="text-muted">مکان: {{ event.location }}</small></p>
+                <p class="card-text"><small class="text-muted">زمان: {{ event.start_time.strftime('%Y-%m-%d %H:%M') }}</small></p>
+                <a href="/events/{{ event.id }}" class="btn btn-primary">مشاهده جزئیات</a>
+            </div>
+        </div>
     </div>
+    {% else %}
+    <div class="col">
+        <p class="text-center">رویدادی برای نمایش وجود ندارد.</p>
+    </div>
+    {% endfor %}
+</div>
+<div class="text-center mt-3">
+    <a href="/events" class="btn btn-info">مشاهده همه رویدادها</a>
 </div>
 {% endblock %}
