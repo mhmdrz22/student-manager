@@ -1,44 +1,42 @@
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
+from typing import Optional
 
-class UserCreate(BaseModel):
+class UserBase(BaseModel):
     username: str
-    email: EmailStr
+    email: str
+
+class UserCreate(UserBase):
     password: str
 
-class User(BaseModel):
+class User(UserBase):
     id: int
-    username: str
-    email: EmailStr
     role: str
 
     class Config:
-        from_attributes = True
-
-
-class EventBase(BaseModel):
-    title: str
-    description: str
-    date: datetime
-    location: str
-
-class EventCreate(EventBase):
-    pass
-
-class Event(EventBase):
-    id: int
-    owner_id: int
-    created_at: datetime
-
-    class Config:
-        from_attributes = True
+        orm_mode = True
 
 class Token(BaseModel):
     access_token: str
     token_type: str
 
 class TokenData(BaseModel):
-    username: str | None = None
+    username: Optional[str] = None
+
+class CommentBase(BaseModel):
+    content: str
+
+class CommentCreate(CommentBase):
+    pass
+
+class Comment(CommentBase):
+    id: int
+    owner_id: int
+    created_at: datetime
+    owner: User
+
+    class Config:
+        orm_mode = True
 
 class ArticleBase(BaseModel):
     title: str
@@ -57,7 +55,7 @@ class Article(ArticleBase):
     owner: "User"
 
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 
 class NewsBase(BaseModel):
@@ -78,4 +76,28 @@ class News(NewsBase):
     owner: "User"
 
     class Config:
-        from_attributes = True
+        orm_mode = True
+
+
+class EventBase(BaseModel):
+    title: str
+    description: str
+    start_time: datetime
+    end_time: Optional[datetime] = None
+    location: str
+    category: str
+    capacity: Optional[int] = None
+    registration_deadline: Optional[datetime] = None
+
+class EventCreate(EventBase):
+    pass
+
+class Event(EventBase):
+    id: int
+    owner_id: int
+    status: str
+    created_at: datetime
+    owner: "User"
+
+    class Config:
+        orm_mode = True

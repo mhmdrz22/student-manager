@@ -22,6 +22,8 @@ class User(Base):
     news = relationship("News", back_populates="owner")
     created_events = relationship("Event", back_populates="owner")
     registered_events = relationship("Event", secondary=event_registration, back_populates="registrants")
+    comments = relationship("Comment", back_populates="owner")
+
 
 class Article(Base):
     __tablename__ = "articles"
@@ -37,6 +39,7 @@ class Article(Base):
     owner_id = Column(Integer, ForeignKey("users.id"))
 
     owner = relationship("User", back_populates="articles")
+    comments = relationship("Comment", back_populates="article")
 
 
 class News(Base):
@@ -53,6 +56,7 @@ class News(Base):
     owner_id = Column(Integer, ForeignKey("users.id"))
 
     owner = relationship("User", back_populates="news")
+    comments = relationship("Comment", back_populates="news_item")
 
 
 class Event(Base):
@@ -75,3 +79,22 @@ class Event(Base):
 
     owner = relationship("User", back_populates="created_events")
     registrants = relationship("User", secondary=event_registration, back_populates="registered_events")
+    comments = relationship("Comment", back_populates="event")
+
+
+class Comment(Base):
+    __tablename__ = "comments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    content = Column(Text, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    news_id = Column(Integer, ForeignKey("news.id"), nullable=True)
+    article_id = Column(Integer, ForeignKey("articles.id"), nullable=True)
+    event_id = Column(Integer, ForeignKey("events.id"), nullable=True)
+
+    owner = relationship("User", back_populates="comments")
+    news_item = relationship("News", back_populates="comments")
+    article = relationship("Article", back_populates="comments")
+    event = relationship("Event", back_populates="comments")
