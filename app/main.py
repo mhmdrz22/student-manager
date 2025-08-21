@@ -394,6 +394,26 @@ def reject_article(article_id: int, db: Session = Depends(get_db), current_user:
     return RedirectResponse(url="/dashboard", status_code=302)
 
 
+@api_router.post("/articles/{article_id}/delete", response_class=HTMLResponse)
+def delete_article(
+    article_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(security.require_role(["manager"]))
+):
+    """Deletes an article. For managers only."""
+    article_to_delete = db.query(models.Article).filter(models.Article.id == article_id).first()
+    if not article_to_delete:
+        raise HTTPException(status_code=404, detail="Article not found")
+
+    # Also delete the associated file from the server
+    if article_to_delete.file_path and os.path.exists(article_to_delete.file_path):
+        os.remove(article_to_delete.file_path)
+
+    db.delete(article_to_delete)
+    db.commit()
+    return RedirectResponse(url="/articles", status_code=302)
+
+
 @api_router.post("/events/{event_id}/approve", response_class=HTMLResponse)
 def approve_event(event_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(security.require_role(["manager"]))):
     """Approves an event, setting its 'status' to 'approved'."""
@@ -535,12 +555,12 @@ async def articles_list_page(request: Request, db: Session = Depends(get_db)):
     return templates.TemplateResponse("articles_list.html", {"request": request, "articles_list": articles})
 
 @app.get("/articles/{article_id}", response_class=HTMLResponse)
-async def article_detail_page(request: Request, article_id: int, db: Session = Depends(get_db)):
+async def article_detail_page(request: Request, article_id: int, db: Session = Depends(get_db), user: models.User = Depends(security.try_get_current_active_user)):
     """Serves the page for a single article."""
     article = db.query(models.Article).options(joinedload(models.Article.owner)).filter(models.Article.id == article_id, models.Article.status == "approved").first()
     if not article:
         raise HTTPException(status_code=404, detail="Article not found")
-    return templates.TemplateResponse("article_detail.html", {"request": request, "article": article})
+    return templates.TemplateResponse("article_detail.html", {"request": request, "article": article, "user": user})
 
 @app.get("/events/new", response_class=HTMLResponse)
 async def create_event_form(

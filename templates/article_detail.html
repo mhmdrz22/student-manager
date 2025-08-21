@@ -16,7 +16,15 @@
         </div>
         <hr>
         <p>{{ article.content }}</p>
-        <a href="/articles" class="btn btn-secondary mt-3">بازگشت به لیست مقالات</a>
+        <hr>
+        <div class="d-flex justify-content-between align-items-center">
+            <a href="/articles" class="btn btn-secondary mt-3">بازگشت به لیست مقالات</a>
+            {% if user and user.role == 'manager' %}
+            <form action="/api/v1/articles/{{ article.id }}/delete" method="post" onsubmit="return confirm('آیا از حذف این مقاله مطمئن هستید؟');">
+                <button type="submit" class="btn btn-danger mt-3">حذف مقاله</button>
+            </form>
+            {% endif %}
+        </div>
     </div>
 </div>
 {% endblock %}
