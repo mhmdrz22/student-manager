@@ -493,10 +493,11 @@ from sqlalchemy.orm import joinedload
 @app.get("/", response_class=HTMLResponse)
 
 async def read_root(request: Request, db: Session = Depends(get_db), user: models.User = Depends(security.try_get_current_active_user)):
-    """Serves the main page and displays the latest news."""
+    """Serves the main page and displays the latest news and events."""
     news_items = db.query(models.News).options(joinedload(models.News.owner)).filter(models.News.status == "approved").order_by(models.News.created_at.desc()).limit(3).all()
+    event_items = db.query(models.Event).options(joinedload(models.Event.owner)).filter(models.Event.status == "approved").order_by(models.Event.start_time.desc()).limit(3).all()
 
-    return templates.TemplateResponse("index.html", {"request": request, "news_list": news_items, "user": user})
+    return templates.TemplateResponse("index.html", {"request": request, "news_list": news_items, "events_list": event_items, "user": user})
 
 @app.get("/register", response_class=HTMLResponse)
 async def register_page(request: Request):
